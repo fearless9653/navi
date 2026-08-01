@@ -1,0 +1,17 @@
+node_modules
+dist
+.git
+.github
+.wrangler
+.superpowers
+.claude
+navi-data
+**/*.sqlite
+**/*.sqlite-*
+**/*.sqlite3
+**/*.db
+.dev.vars
+.dev.vars.*
+*.log
+tests
+docs

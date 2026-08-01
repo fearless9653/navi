@@ -1,0 +1,160 @@
+# ==============================================================================
+# .gitattributes 配置文件
+# 作用：统一团队的行尾换行符(LF/CRLF)、强制指定文本/二进制文件、配置差异对比等。
+# ==============================================================================
+
+# ================================
+# 1. 全局默认规则
+# ================================
+# text=auto: 开启 Git 的自动启发式检测，将识别到的文本文件在入库时统一转为 LF。
+# eol=lf: 强制检出（Checkout）到工作区时也使用 LF（推荐现代跨平台开发使用）。
+# 如果团队中有老旧 Windows 工具仅支持 CRLF，可仅使用 * text=auto，但推荐全员统一 LF。
+* text=auto eol=lf
+
+# ================================
+# 2. 脚本文件（极其重要）
+# ================================
+# Shell 脚本在 Linux/Mac/Docker 下执行，如果包含 CR 字符会直接报错 (bad interpreter)
+*.sh text eol=lf
+
+# Windows 批处理和 PowerShell 脚本，某些旧版或特定执行环境下要求 CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# ================================
+# 3. 核心源码文件（显式声明）
+# ================================
+# 即使有全局 auto，显式声明可以防止 Git 启发式算法因特殊字符误判文本为二进制。
+# 配置 diff=xxx 可以让 git diff 输出更有意义的上下文信息（比如显示函数名）。
+
+# Java 体系 (根据当前项目类型补充)
+*.java text diff=java
+*.kt text diff=kotlin
+*.groovy text
+*.scala text
+*.gradle text
+*.kts text
+
+# Web 前端体系
+*.js text eol=lf
+*.ts text eol=lf
+*.jsx text eol=lf
+*.tsx text eol=lf
+*.vue text eol=lf
+*.css text diff=css
+*.scss text diff=css
+*.html text diff=html
+*.htm text diff=html
+
+# 其他常见语言
+*.py text diff=python
+*.go text diff=golang
+*.c text diff=cpp
+*.cpp text diff=cpp
+*.h text diff=cpp
+*.hpp text diff=cpp
+*.sql text
+
+# ================================
+# 4. 配置文件与数据文件
+# ================================
+# 无扩展名的构建/项目文件
+Dockerfile text eol=lf
+Makefile text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+.editorconfig text eol=lf
+
+# 常见配置文件
+*.xml text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.properties text eol=lf
+*.ini text
+*.toml text
+*.env text eol=lf
+*.env.* text eol=lf
+
+# 数据与文本文档
+*.md text diff=markdown
+*.txt text
+*.csv text
+*.tsv text
+
+# ================================
+# 5. 特殊文本文件
+# ================================
+# 矢量图（本质是 XML 文本，不应作为二进制处理，以便 Git diff）
+*.svg text eol=lf
+
+# 证书与密钥（PEM 等格式本质是 Base64 文本）
+*.pem text eol=lf
+*.key text eol=lf
+*.crt text eol=lf
+*.cer text eol=lf
+
+# ================================
+# 6. 二进制文件（显式声明）
+# ================================
+# 标记为 binary 等同于 -text -diff，Git 不会尝试转换它们的换行符，也不会在 diff 中显示内容。
+
+# 编译产物与库
+*.jar binary
+*.war binary
+*.ear binary
+*.class binary
+*.so binary
+*.dll binary
+*.dylib binary
+*.exe binary
+
+# 图片（排除了 svg）
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.bmp binary
+*.webp binary
+
+# 字体
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.eot binary
+
+# 压缩包
+*.zip binary
+*.tar binary
+*.tar.gz binary
+*.tgz binary
+*.gz binary
+*.bz2 binary
+*.7z binary
+*.rar binary
+
+# Office 文档
+*.pdf binary
+*.doc binary
+*.docx binary
+*.xls binary
+*.xlsx binary
+*.ppt binary
+*.pptx binary
+
+# 密钥库（真正的二进制格式）
+*.jks binary
+*.p12 binary
+*.keystore binary
+*.truststore binary
+
+# ================================
+# 7. Git 统计忽略（可选，适用于 GitHub/GitLab）
+# ================================
+# 使用 linguist-generated=true 可让某些自动生成的文件或锁定文件不在代码语言统计和默认 diff 中显示
+# pnpm-lock.yaml linguist-generated=true
+# yarn.lock linguist-generated=true
+# pnpm-lock.yaml linguist-generated=true

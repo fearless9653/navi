@@ -1,0 +1,1 @@
+ALTER TABLE `user_prefs` ADD `music_playlist` text DEFAULT '[]' NOT NULL;

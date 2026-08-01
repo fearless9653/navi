@@ -1,0 +1,706 @@
+@import 'tailwindcss';
+
+/* class 策略黑暗模式：<html class="dark"> 时启用 dark: 变体 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================================================
+ * Tailwind v4 主题注册
+ * 仅注册需要由 Tailwind 生成「变体/工具」的令牌（断点）。
+ * 颜色/阴影/圆角等可运行时随明暗主题切换的令牌，统一以普通
+ * CSS 变量定义在 :root / .dark 中（见下），并通过 ui-* 语义类
+ * 或 var() 消费——这样 .dark 覆盖始终生效。
+ * ============================================================ */
+@theme {
+  --breakpoint-3xl: 135rem; /* 2K 显示器 (2160px) */
+  --breakpoint-4xl: 240rem; /* 4K 显示器 (3840px) */
+
+  --font-sans:
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* ============================================================
+ * 设计令牌（基础层 + 功能层）— 来源：docs/design-system/01-基础令牌.md
+ * 亮色模式
+ * ============================================================ */
+:root {
+  /* ---------- 主色阶：iOS蓝 ---------- */
+  --color-primary-50: #e5f2ff;
+  --color-primary-100: #cce5ff;
+  --color-primary-200: #99ccff;
+  --color-primary-300: #66b3ff;
+  --color-primary-400: #3399ff;
+  --color-primary-500: #007aff; /* 基准 */
+  --color-primary-600: #0062cc;
+  --color-primary-700: #004a99;
+  --color-primary-800: #003166;
+  --color-primary-900: #001933;
+
+  /* ---------- 中性灰阶（温暖偏移） ---------- */
+  --color-neutral-50: #fafaf8;
+  --color-neutral-100: #f5f4f1;
+  --color-neutral-200: #e7e3da;
+  --color-neutral-300: #d4d0c7;
+  --color-neutral-400: #9ba1a8;
+  --color-neutral-500: #6b7077;
+  --color-neutral-600: #52575c;
+  --color-neutral-700: #3a3e42;
+  --color-neutral-800: #25282b;
+  --color-neutral-900: #1a1c1e;
+
+  /* ---------- 功能色 ---------- */
+  --color-success-50: #f0fdf4;
+  --color-success-100: #dcfce7;
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+  --color-success-700: #15803d;
+
+  --color-danger-50: #fef2f2;
+  --color-danger-100: #fee2e2;
+  --color-danger-500: #ef4444;
+  --color-danger-600: #dc2626;
+  --color-danger-700: #b91c1c;
+
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+
+  --color-info-50: #eff6ff;
+  --color-info-100: #dbeafe;
+  --color-info-500: #3b82f6;
+  --color-info-600: #2563eb;
+  --color-info-700: #1d4ed8;
+
+  /* ---------- 背景与表面 ---------- */
+  --color-background: #f7f5f1;
+  --color-surface: #ffffff;
+  --color-surface-muted: #fafaf8;
+  --color-row-hover: #f0ede6;
+  --color-surface-overlay: rgba(255, 255, 255, 0.95);
+
+  /* ---------- 文字层级 ---------- */
+  --color-text-primary: #1e2227;
+  --color-text-secondary: #5f656d;
+  --color-text-subtle: #6b7077;
+  --color-text-faint: #6b7077;
+
+  /* ---------- 边框与分隔线 ---------- */
+  --color-border: #e7e3da;
+  --color-border-muted: #f0ede4;
+  --color-divider: #ede9e0;
+  --color-divider-soft: #f5f2e9;
+
+  /* ---------- 功能层别名 ---------- */
+  --color-accent: var(--color-primary-500);
+  --color-accent-hover: var(--color-primary-600);
+  --color-accent-light: #e5f2ff;
+  --color-on-accent: #ffffff;
+  --color-on-danger: #ffffff;
+  --color-danger: var(--color-danger-600);
+  --color-danger-soft: var(--color-danger-500);
+  --color-success: var(--color-success-600);
+  --color-warning: var(--color-warning-600);
+  --color-info: var(--color-info-600);
+
+  /* ---------- 焦点环 ---------- */
+  --color-focus-ring: color-mix(in srgb, var(--color-accent) 20%, transparent);
+  --focus-ring-width: 3px;
+
+  /* ---------- 间距（8px 网格） ---------- */
+  --spacing-0-5: 0.125rem;
+  --spacing-1: 0.25rem;
+  --spacing-1-5: 0.375rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-5: 1.25rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-10: 2.5rem;
+  --spacing-12: 3rem;
+  --spacing-16: 4rem;
+
+  /* ---------- 首页浮动控件 ---------- */
+  --home-floating-control-bottom: calc(var(--spacing-6) + env(safe-area-inset-bottom));
+
+  /* ---------- 圆角 ---------- */
+  --radius-xs: 0.125rem;
+  --radius-sm: 0.25rem;
+  --radius-base: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+  --radius-full: 9999px;
+
+  /* ---------- 阴影 ---------- */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-base: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+  --shadow-action-hover: 0 4px 12px color-mix(in srgb, var(--color-accent) 25%, transparent);
+  --shadow-danger-hover: 0 4px 12px color-mix(in srgb, var(--color-danger) 25%, transparent);
+
+  /* ---------- 毛玻璃 ----------
+   * backdrop = 模糊 + 饱和度提升：模糊会把颜色摊平变灰，saturate 补回通透感，
+   * 是「高级毛玻璃」与「蒙灰塑料感」的分水岭。
+   * sheen = 顶部棱光：模拟光打在玻璃上边缘的高光，用背景渐变实现，
+   * 不占用 box-shadow，避免与 Tailwind 的 shadow-* 工具类冲突。
+   * edge = 边缘折射：上沿 1px 亮线（高光）+ 下沿 1px 暗线（收边），用 inset
+   * box-shadow 实现，给玻璃「光从上方打来」的方向感与厚度——这是通透与反射
+   * 都到位后仍显蒙雾时的关键一层（搜索框等大块玻璃启用）。 */
+  --glass-blur: 12px;
+  --glass-blur-strong: 20px;
+  --glass-saturate: 180%;
+  --glass-backdrop: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  --glass-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 40%);
+  --glass-edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  --glass-edge-dark: inset 0 -1px 0 rgba(0, 0, 0, 0.06);
+
+  /* ---------- 卡片悬浮（BaseCard 复用）----------
+   * shadow-card-hover = 主题色辉光(B) + 离地阴影(A)：物体抬升时影子既要扩散又要变淡，
+   *   而不是换一档更黑更硬的影子（那是廉价感的来源）。
+   * card-glare = 悬浮时掠过玻璃面的斜向高光(C)，叠在「玻璃背景之上、内容之下」。 */
+  --shadow-card-hover:
+    0 10px 30px -12px color-mix(in srgb, var(--color-accent) 26%, transparent),
+    0 8px 22px -8px rgba(0, 0, 0, 0.16);
+  /* 亮色面是 #fff：白色高光「白上加白」不可见，故用主题色（蓝）斜向淡扫，
+     既读得出，又像玻璃接住冷光，并与悬浮的 accent 描边/辉光成系。 */
+  --card-glare: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-accent) 22%, transparent) 0%,
+    color-mix(in srgb, var(--color-accent) 7%, transparent) 30%,
+    transparent 55%
+  );
+
+  /* ---------- 动效 ---------- */
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-medium: 350ms;
+  --duration-slow: 500ms;
+
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-back: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* ---------- Z-index 层级 ---------- */
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-fixed: 1200;
+  --z-floating: 1250;
+  --z-overlay: 1300;
+  --z-modal: 1400;
+  --z-popover: 1500;
+  --z-toast: 1600;
+  --z-skip-link: 1700;
+}
+
+/* ============================================================
+ * 暗色模式覆盖（docs/design-system/01 §1.9）
+ * ============================================================ */
+.dark {
+  /* 背景与表面 */
+  --color-background: #0f1114;
+  --color-surface: #1a1d21;
+  --color-surface-muted: #141619;
+  --color-row-hover: #22262b;
+  --color-surface-overlay: rgba(26, 29, 33, 0.95);
+
+  /* 文字 */
+  --color-text-primary: #e8eaed;
+  --color-text-secondary: #9ba1a8;
+  --color-text-subtle: #6b7077;
+  --color-text-faint: #52575c;
+
+  /* 边框与分隔线 */
+  --color-border: #2a2e33;
+  --color-border-muted: #1f2226;
+  --color-divider: #252930;
+  --color-divider-soft: #1c1f23;
+
+  /* 强调色提亮（对比度补偿） */
+  --color-accent: #3399ff;
+  --color-accent-hover: #66b3ff;
+  --color-accent-light: #001f3d;
+
+  /* 功能色提亮 */
+  --color-success-500: #34d399;
+  --color-danger-50: #2a1618;
+  --color-danger-100: #3d1d20;
+  --color-danger-500: #f87171;
+  --color-danger-600: #f87171;
+  --color-danger-700: #fca5a5;
+  --color-warning-500: #fbbf24;
+  --color-info-500: #60a5fa;
+  --color-danger: #f87171;
+  --color-danger-soft: #f87171;
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-info: #60a5fa;
+
+  /* 暗色阴影加深 */
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
+  --shadow-base: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.45), 0 4px 6px -4px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+
+  /* 暗色下棱光收敛：纯白高光在深色面上会发脏，降到很淡即可 */
+  --glass-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0) 40%);
+  /* 暗色面深：白线读得出故保留并略提（锐线需比 sheen 略强），暗线加深以收边 */
+  --glass-edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --glass-edge-dark: inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+
+  /* 暗色下离地阴影加深（与暗色阴影体系一致），高光收敛 */
+  --shadow-card-hover:
+    0 10px 30px -12px color-mix(in srgb, var(--color-accent) 30%, transparent),
+    0 8px 22px -8px rgba(0, 0, 0, 0.45);
+  /* 暗色面深：与亮色统一用 accent 蓝扫光，避免 hover 时「亮色蓝 / 暗色白」割裂，
+     让边框 accent 描边 + 辉光 + glare 三件在两套主题下同属 accent 一族。
+     但蓝在深色面上对比弱于白光，易被背景吃掉，故起始浓度比亮色(22%/7%)提一档
+     到 35%/12% 作可见度补偿。 */
+  --card-glare: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-accent) 35%, transparent) 0%,
+    color-mix(in srgb, var(--color-accent) 12%, transparent) 30%,
+    transparent 55%
+  );
+}
+
+/* 画布兜底底色：有壁纸时 AppLayout 根容器刻意透明（负 z-index 图层需透过它），
+ * 若 body 无底色，图片加载完成前透出的是浏览器默认白画布——暗色主题下闪白。
+ * .dark 挂在 <html> 上，变量随主题正确解析；图片加载后淡入覆盖，此色只在加载前可见。 */
+body {
+  background-color: var(--color-background);
+}
+
+/* 类「手机」布局：< 64rem(1024px)。须与 HomeView 的 lg: 断点(min-width:64rem)、
+ * useResponsivePageSize 的手机判据(cols ≤ 3)保持同一条线。用 range 语法而非
+ * max-width:1023.98px，与 lg 的 min-width:64rem 精确互补，无重叠无缝隙。 */
+@media (width < 64rem) {
+  :root {
+    --home-floating-control-bottom: calc(6.5rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* ============================================================
+ * 语义工具类（消费令牌，组件统一引用，杜绝硬编码调色板）
+ * ============================================================ */
+@layer components {
+  /* ---------- 表面 ---------- */
+  .ui-surface {
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+    color: var(--color-text-primary);
+  }
+
+  .ui-surface-muted {
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface-muted);
+    color: var(--color-text-primary);
+  }
+
+  .ui-surface-translucent {
+    border: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
+    background-color: color-mix(in srgb, var(--color-surface) 60%, transparent);
+    background-image: var(--glass-sheen);
+    -webkit-backdrop-filter: var(--glass-backdrop);
+    backdrop-filter: var(--glass-backdrop);
+    color: var(--color-text-primary);
+  }
+
+  /* 不支持 backdrop-filter 的旧浏览器：背景转实色，避免半透明糊背景导致文字看不清。
+   * 背景渐变棱光同步移除（实色面上无意义）。 */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .ui-surface-translucent {
+      background-color: var(--color-surface);
+      background-image: none;
+    }
+  }
+
+  /* 仅填充表面背景（无边框），用于表头等 */
+  .ui-fill-muted {
+    background-color: var(--color-surface-muted);
+  }
+
+  /* 半透明表头填充：用于毛玻璃容器内，让模糊背景透出而非盖上实色条 */
+  .ui-fill-muted-translucent {
+    background-color: color-mix(in srgb, var(--color-surface-muted) 70%, transparent);
+  }
+
+  /* 页面背景（奶白 / 暗色） */
+  .ui-bg {
+    background-color: var(--color-background);
+  }
+
+  .ui-overlay {
+    background-color: color-mix(in srgb, var(--color-text-primary) 40%, transparent);
+  }
+
+  .ui-border {
+    border-color: var(--color-border);
+  }
+
+  .ui-divider {
+    border-color: var(--color-divider);
+  }
+
+  /* ---------- 文字 ---------- */
+  .ui-text {
+    color: var(--color-text-primary);
+  }
+
+  .ui-text-muted {
+    color: var(--color-text-secondary);
+  }
+
+  .ui-text-subtle {
+    color: var(--color-text-subtle);
+  }
+
+  .ui-text-faint {
+    color: var(--color-text-faint);
+  }
+
+  /* 内容区 section 标题：同 primary 色 + 更重字重，压住下方内容项 */
+  .ui-section-title {
+    color: var(--color-text-primary);
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+  }
+
+  /* 侧边栏 / 分组导航的分组标签：轻量、浅色、字母大写间距 */
+  .ui-nav-group-title {
+    color: var(--color-text-faint);
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+
+  /* ---------- 链接 ---------- */
+  .ui-link {
+    display: inline-flex;
+    align-items: center;
+    border-radius: var(--radius-base);
+    padding: var(--spacing-0-5) var(--spacing-1-5);
+    color: var(--color-accent);
+    text-decoration: none;
+    transition:
+      color var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .ui-link:hover {
+    color: var(--color-accent-hover);
+    background-color: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  }
+
+  .ui-link-danger {
+    display: inline-flex;
+    align-items: center;
+    border-radius: var(--radius-base);
+    padding: var(--spacing-0-5) var(--spacing-1-5);
+    color: var(--color-danger);
+    text-decoration: none;
+    transition:
+      color var(--duration-fast) var(--ease-out),
+      background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .ui-link-danger:hover {
+    color: var(--color-danger-700);
+    background-color: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  }
+
+  /* ---------- 状态文字 ---------- */
+  .ui-status-success {
+    color: var(--color-success);
+  }
+
+  .ui-status-danger {
+    color: var(--color-danger);
+  }
+
+  .ui-status-warning {
+    color: var(--color-warning);
+  }
+
+  .ui-status-info {
+    color: var(--color-info);
+  }
+
+  /* ---------- 表单字段 ---------- */
+  .ui-field {
+    border-radius: var(--radius-base);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+    padding: var(--spacing-2) var(--spacing-3);
+    color: var(--color-text-primary);
+    outline: none;
+    transition:
+      border-color var(--duration-base) var(--ease-out),
+      box-shadow var(--duration-base) var(--ease-out);
+  }
+
+  .ui-field:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 var(--focus-ring-width) var(--color-focus-ring);
+  }
+
+  .ui-field-sm {
+    border-radius: var(--radius-base);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+    padding: var(--spacing-1-5) var(--spacing-3);
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--color-text-primary);
+    outline: none;
+    transition:
+      border-color var(--duration-base) var(--ease-out),
+      box-shadow var(--duration-base) var(--ease-out);
+  }
+
+  .ui-field-sm:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 var(--focus-ring-width) var(--color-focus-ring);
+  }
+
+  /* search 输入框的原生清除按钮：中性灰，悬停变红（与移除/删除样式同源） */
+  .ui-search::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 0.875rem;
+    width: 0.875rem;
+    cursor: pointer;
+    background-color: var(--color-text-faint);
+    mask: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20d='M6%206l12%2012M18%206L6%2018'%20stroke='black'%20stroke-width='2.5'%20stroke-linecap='round'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20d='M6%206l12%2012M18%206L6%2018'%20stroke='black'%20stroke-width='2.5'%20stroke-linecap='round'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    transition: background-color var(--duration-base) var(--ease-out);
+  }
+
+  .ui-search::-webkit-search-cancel-button:hover {
+    background-color: var(--color-danger);
+  }
+
+  /* ---------- 键位提示（kbd）：搜索框内嵌提示、快捷键帮助面板共用 ---------- */
+  .ui-kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding: 0 var(--spacing-1);
+    border: 1px solid var(--color-border);
+    border-bottom-width: 2px;
+    border-radius: var(--radius-sm);
+    background-color: var(--color-surface-muted);
+    color: var(--color-text-secondary);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.6875rem;
+    line-height: 1;
+  }
+
+  /* ---------- 按钮（保留旧类，供未迁移处兜底；新组件见 atoms/BaseButton） ---------- */
+  .ui-button-primary {
+    border-radius: var(--radius-base);
+    background-color: var(--color-accent);
+    font-weight: 500;
+    color: var(--color-on-accent);
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
+  }
+
+  .ui-button-primary:disabled {
+    opacity: 0.5;
+  }
+
+  .ui-button-primary:hover:not(:disabled) {
+    background-color: var(--color-accent-hover);
+    box-shadow: var(--shadow-action-hover);
+  }
+
+  .ui-button-secondary {
+    border-radius: var(--radius-base);
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+    color: var(--color-text-primary);
+    transition:
+      background-color var(--duration-fast) var(--ease-out),
+      border-color var(--duration-fast) var(--ease-out),
+      transform var(--duration-fast) var(--ease-out),
+      box-shadow var(--duration-fast) var(--ease-out);
+  }
+
+  .ui-button-secondary:hover {
+    background-color: var(--color-surface-muted);
+    border-color: color-mix(in srgb, var(--color-accent) 30%, var(--color-border));
+    box-shadow: var(--shadow-base);
+  }
+
+  .ui-button-ghost {
+    border-radius: var(--radius-base);
+    color: var(--color-text-secondary);
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .ui-button-ghost:hover {
+    background-color: var(--color-row-hover);
+  }
+
+  /* ---------- 行 / 选中 ---------- */
+  .ui-row-hover {
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .ui-row-hover:hover {
+    background-color: var(--color-row-hover);
+  }
+
+  .ui-active {
+    background-color: var(--color-surface-muted);
+    color: var(--color-accent);
+  }
+
+  /* ---------- Chip / Badge（保留旧类） ---------- */
+  .ui-chip {
+    border-radius: var(--radius-sm);
+    background-color: var(--color-surface-muted);
+    color: var(--color-text-secondary);
+    transition: background-color var(--duration-fast) var(--ease-out);
+  }
+
+  .ui-chip-accent {
+    background-color: var(--color-accent-light);
+    color: var(--color-accent);
+  }
+
+  /* ---------- 复选框 ---------- */
+  .ui-check {
+    border-color: var(--color-border);
+  }
+
+  .ui-check-active {
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-on-accent);
+  }
+
+  /* ---------- 统一焦点环（键盘可见） ---------- */
+  .ui-focus-ring:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  /* 树形展开/折叠图标：hover 时由 faint 加深为正文色 */
+  .ui-expand-toggle {
+    transition: color var(--duration-fast) var(--ease-out);
+  }
+
+  .ui-expand-toggle:hover {
+    color: var(--color-text-primary);
+  }
+
+  /* ---------- 现代化表格 ---------- */
+  .modern-table .table-header {
+    background-color: color-mix(in srgb, var(--color-surface-muted) 70%, transparent);
+    color: var(--color-text-secondary);
+    font-weight: 500;
+    font-size: 0.875rem;
+    border-bottom: 1px solid var(--color-divider);
+  }
+
+  .modern-table .table-header th {
+    font-weight: 500;
+    height: 3rem;
+    vertical-align: middle;
+  }
+
+  .modern-table .table-row {
+    transition: background-color var(--duration-fast) var(--ease-out);
+    border-bottom: 1px solid var(--color-divider-soft);
+  }
+
+  .modern-table .table-row:last-child {
+    border-bottom: none;
+  }
+
+  .modern-table .table-row:hover {
+    background-color: color-mix(in srgb, var(--color-surface-muted) 70%, transparent);
+  }
+
+  .modern-table .bulk-actions-row {
+    background-color: var(--color-accent-light);
+    color: var(--color-text-primary);
+    border-bottom: 1px solid var(--color-divider);
+  }
+
+  .modern-table .bulk-actions-row th {
+    font-weight: normal;
+    height: 3rem;
+    vertical-align: middle;
+  }
+}
+
+.font-sans {
+  font-family: var(--font-sans);
+}
+
+/* 自定义负 z-index 用于背景装饰层 */
+@layer utilities {
+  .-z-9 {
+    z-index: -9;
+  }
+  .-z-10 {
+    z-index: -10;
+  }
+}
+
+/* ============================================================
+ * 浮层过渡（组件间共用同一套动效语言，杜绝各处重复定义）
+ * 用 transition（非 animation），故自动受下方 reduced-motion 压制，无需逐类兜底。
+ * ============================================================ */
+
+/* 浮层弹出（下拉菜单 / 级联筛选 / 账户菜单共用）：淡入 + 4px 下沉收起。
+   与旧 BaseDropdown 的 dropdown-in 同语言，但补齐了离场动画（enter/leave 对称）。 */
+.pop-enter-active {
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+.pop-leave-active {
+  transition:
+    opacity var(--duration-fast) var(--ease-in),
+    transform var(--duration-fast) var(--ease-in);
+}
+.pop-enter-from,
+.pop-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+/* ============================================================
+ * 动效无障碍：尊重 prefers-reduced-motion（docs 06 §动效无障碍）
+ * ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,16 @@
+services:
+  navi:
+    build: .
+    # 使用预构建镜像时：注释掉上面的 build 行，取消注释下面的 image 行（见 README「使用预构建镜像」）
+    # image: navi:latest
+    container_name: navi
+    restart: unless-stopped
+    ports:
+      - '8787:8787'
+    environment:
+      NODE_ENV: production
+      SECURE_COOKIES: 'false'
+      PORT: '8787'
+      DATABASE_FILE: /data/navi.sqlite
+    volumes:
+      - ./navi-data:/data

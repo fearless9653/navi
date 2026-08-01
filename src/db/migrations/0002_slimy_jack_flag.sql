@@ -1,0 +1,1 @@
+ALTER TABLE `user_prefs` ADD `background_type` text DEFAULT 'none' NOT NULL;

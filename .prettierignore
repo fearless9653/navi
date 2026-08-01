@@ -1,0 +1,10 @@
+node_modules
+dist
+.wrangler
+.superpowers
+src/db/migrations
+docs
+pnpm-lock.yaml
+*.md
+.*/**
+web/public/_headers

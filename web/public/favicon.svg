@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 32 32"
+  width="100%"
+  height="100%"
+  style="display:block;">
+
+  <defs>
+    <!-- 1. 底色线性渐变：从左上浅蓝到右下深蓝，增加立体感 -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4DA6FF"/>
+      <stop offset="100%" stop-color="#0066CC"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 背景：圆角矩形 -->
+  <rect
+    width="32"
+    height="32"
+    rx="7"
+    fill="url(#bgGrad)"
+  />
+
+  <!-- 箭头 -->
+  <path
+    d="M16 5l8 22-8-5-8 5z"
+    fill="#FFFFFF"
+    transform="rotate(-45, 12, 18)"
+  />
+</svg>

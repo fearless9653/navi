@@ -1,0 +1,45 @@
+name = "navi"
+main = "src/server/worker.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# D1 绑定（部署前需 `wrangler d1 create navi` 并填 database_id）
+[[d1_databases]]
+binding = "DB"
+database_name = "navi"
+database_id = "d5d92e28-5da5-4f07-b47e-a4db5de20c98"  # ← 必须替换为 `wrangler d1 create navi` 输出的 database_id，否则部署会报错
+migrations_dir = "src/db/migrations"  # 复用 drizzle 生成的迁移目录
+
+# 静态资源（托管前端构建产物 dist/client）
+[assets]
+directory = "dist/client"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+# 可观测性：显式开启，线上报错可在 dashboard 事后查询，而非只能靠 `wrangler tail` 实时盯。
+# 刻意显式声明而不依赖平台默认值——默认值随平台演进可能变化，写死才是确定的。
+[observability]
+enabled = true
+
+# ---------------------------------------------------------------------------
+# 预发环境：与生产**完全隔离的另一个 Worker + 另一个 D1 库**，用于验证迁移与部署，
+# 不要拿生产库试迁移。用法见 DEPLOY_CLOUDFLARE.md 的「预发环境」一节：
+#   pnpm exec wrangler d1 migrations apply navi-staging --env staging --remote
+#   pnpm exec wrangler deploy --env staging
+#
+# 注意 wrangler 的分段继承语义（wrangler 4.112 实测）：
+#   - d1_databases **不继承**顶层，分段内必须重新声明，漏写则预发无 DB 绑定（wrangler 会告警）。
+#     这条正是隔离的关键：绝不能让预发回落到生产库。
+#   - assets / observability **会继承**顶层。此处仍显式重写 d1，assets/observability 靠继承，
+#     避免同一份配置写两遍后改一处漏一处。
+# ---------------------------------------------------------------------------
+[env.staging]
+name = "navi-staging"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "navi-staging"
+database_id = "REPLACE_ME"  # ← 另建一个库：`wrangler d1 create navi-staging`
+migrations_dir = "src/db/migrations"
+
+# assets / observability 继承顶层，故此处不重复声明（实测已确认继承生效）。

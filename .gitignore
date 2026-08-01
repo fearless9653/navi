@@ -1,0 +1,184 @@
+# ==============================================================================
+# .gitignore 配置文件
+# 作用：告诉 Git 哪些文件或目录不需要被追踪（例如编译产物、临时文件、敏感信息等）。
+# 语法说明：
+#   *       匹配多个字符
+#   ?       匹配单个字符
+#   []      匹配括号内的任一字符
+#   !       表示例外规则，将不被忽略
+#   /       以斜杠开头表示只匹配当前目录；以斜杠结尾表示只匹配目录
+# ==============================================================================
+
+# ================================
+# 1. 核心构建与产物 (Build & Output)
+# ================================
+target/
+build/
+out/
+bin/
+dist/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+
+# ================================
+# 2. Java / 框架特定文件
+# ================================
+# Gradle 缓存与配置
+.gradle/
+!gradle-wrapper.jar
+gradle-app.setting
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# Maven 缓存与配置
+.m2/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# ================================
+# 3. IDE 与编辑器配置文件
+# ================================
+# IntelliJ IDEA (JetBrains)
+.idea/
+*.iml
+
+# Eclipse
+.eclipse/
+.classpath
+.project
+.settings/
+
+# VS Code
+.vscode/
+
+# Vim / 临时文件
+*.swp
+*.swo
+*~
+
+# ================================
+# 4. 日志、临时与缓存文件
+# ================================
+*.log
+logs/
+tmp/
+temp/
+*.tmp
+*.temp
+
+# ================================
+# 5. 敏感信息与本地配置 (Sensitive & Local)
+# ================================
+*-local.*
+*-local
+*.local
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# ================================
+# 6. 操作系统生成文件 (OS Generated)
+# ================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ================================
+# 7. AI 辅助编程工具 (AI Coding Assistants)
+# ================================
+# Claude / Claude Code
+.claude/
+.claude*
+
+# Windsurf / Cascade
+.windsurf/
+
+# Cursor
+.cursor/
+.cursor*
+
+# Codex
+.codex/
+.agents/
+
+# Aider
+.aider*
+.aider/
+
+# Continue.dev
+.continue/
+
+# GitHub Copilot
+.github/copilot/
+
+# Tabnine
+.tabnine/
+
+# Codeium
+.codeium/
+
+# Codota
+.codota/
+
+# Kite
+.kite/
+
+# ================================
+# 8. 依赖目录 (Dependencies)
+# ================================
+node_modules/
+.npm/
+.yarn/
+vendor/
+
+# ================================
+# 9. 测试与覆盖率 (Test & Coverage)
+# ================================
+coverage/
+.nyc_output/
+.pytest_cache/
+__pycache__/
+*.pyc
+.mypy_cache/
+
+# ================================
+# 10. 其他 (Misc)
+# ================================
+overlays/
+*.bak
+*.backup
+*.orig
+
+# ================================
+# 11. 项目特定 (Navi)
+# ================================
+# 可视化头脑风暴产物（brainstorming 浮层原型等）
+.superpowers/
+# Cloudflare Workers 本地状态与密钥
+.wrangler/
+# mcp 服务的产物
+.*-mcp/
+.dev.vars
+.dev.vars.*
+# 本地 SQLite 开发数据库（含 WAL/SHM 旁文件）
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.db
+# Docker 绑定挂载的数据目录（docker-compose.yml 的 ./navi-data:/data）
+navi-data/

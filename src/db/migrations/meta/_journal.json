@@ -1,0 +1,76 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1781275734016,
+      "tag": "0000_mean_scarlet_witch",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1781664448607,
+      "tag": "0001_magical_pyro",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1782372087231,
+      "tag": "0002_slimy_jack_flag",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1782788186915,
+      "tag": "0003_lowly_domino",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1783377600000,
+      "tag": "0004_active_bookmarks",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1783410000000,
+      "tag": "0005_personal_slogan",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1784440459949,
+      "tag": "0006_prefs_defaults",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1784622618780,
+      "tag": "0007_backfill_background_type",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1784859829874,
+      "tag": "0008_first_namora",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1785050553240,
+      "tag": "0009_pale_rockslide",
+      "breakpoints": true
+    }
+  ]
+}
