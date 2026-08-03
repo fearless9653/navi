@@ -1,6 +1,6 @@
 # Cloudflare Workers + D1 部署指南
 
-> Docker 部署见 README 的 Docker 章节。本指南与 Docker 完全分开：Cloudflare 不使用 `dist/server/node.js`，不需要 `pnpm build:docker`，Workers 运行入口仍是 `src/server/worker.ts`，静态资源目录是 `dist/client`。
+> Docker 部署见 [部署运维手册](docs/部署运维.md) 的 Docker 章节。本指南与 Docker 完全分开：Cloudflare 不使用 `dist/server/node.js`，不需要 `pnpm build:docker`，Workers 运行入口仍是 `src/server/worker.ts`，静态资源目录是 `dist/client`。
 
 ## 前置条件
 
