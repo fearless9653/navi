@@ -54,7 +54,7 @@ export const messages = {
       wrongPassword: '密码错误',
     },
     home: {
-      webSearch: '网页搜索',
+      webSearch: '想找点什么？',
       recent: '最近访问',
       byVisits: '访问次数',
       byWeight: '自设权重',
@@ -287,7 +287,7 @@ export const messages = {
       wrongPassword: 'Wrong password',
     },
     home: {
-      webSearch: 'Web search',
+      webSearch: 'Looking for something?',
       recent: 'Recent',
       byVisits: 'Most visited',
       byWeight: 'Weighted',

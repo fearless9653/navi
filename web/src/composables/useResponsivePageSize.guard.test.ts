@@ -13,7 +13,7 @@ import { resolve } from 'node:path';
  *   1. 手机静态列类：BookmarkGrid 的 grid-cols-2 / md:grid-cols-3（模板） ↔
  *      calcGridLayout 手机分支回显的 2/3（JS）。桌面列数由 --bm-cols 动态下发，无静态类。
  *   2. 卡片高度 CARD_HEIGHT ↔ BookmarkCard 的 h-28。
- *   3. 网格间距 GAP ↔ BookmarkGrid 的 sm:gap-4。
+ *   3. 网格间距 GAP ↔ BookmarkGrid 的 sm:gap-3。
  *   4. MOBILE_BREAKPOINT(1024) ↔ HomeView 的 lg: aside 断点 ↔ BookmarkGrid 的媒体查询。
  *   5. 动态变量 --bm-cols / --bm-row-gap：HomeView 下发 ↔ BookmarkGrid 消费
  *      （且媒体查询锚定同一 1024px）。
@@ -61,12 +61,12 @@ describe('useResponsivePageSize 跨语言常量守护', () => {
     expect(cardHeight).toBe(twHeight);
   });
 
-  it('GAP 等于 BookmarkGrid 的 sm:gap-4（桌面网格间距 ×4px）', () => {
+  it('GAP 等于 BookmarkGrid 的 sm:gap-3（桌面网格间距 ×4px）', () => {
     const composable = read('web/src/composables/useResponsivePageSize.ts');
     const grid = read('web/src/components/home/BookmarkGrid.vue');
 
     const gap = num(composable, /GAP\s*=\s*(\d+)/);
-    // 桌面（width≥1024，故 sm 前缀生效）间距取 sm:gap-4 → 4×4 px。
+    // 桌面（width≥1024，故 sm 前缀生效）间距取 sm:gap-3 → 3×4 px。
     const twGap = num(grid, /sm:gap-(\d+)/) * 4;
     expect(gap).toBe(twGap);
   });
@@ -94,8 +94,8 @@ describe('useResponsivePageSize 跨语言常量守护', () => {
     // 消费端：BookmarkGrid 仅在桌面断点覆盖列数与 row-gap。
     expect(grid).toContain('grid-template-columns: repeat(var(--bm-cols');
     expect(grid).toContain('row-gap: var(--bm-row-gap');
-    // 上下边缘 = 行距 − 基础 GAP：calc 里的 1rem 字面量必须等于 GAP（16px = 1rem），
-    // 否则边缘与行距不同节奏。改 GAP/sm:gap-4 时需同步这里的 1rem。
-    expect(grid).toContain('padding-block: calc(var(--bm-row-gap, 1rem) - 1rem)');
+    // 上下边缘 = 行距 − 基础 GAP：calc 里的 0.75rem 字面量必须等于 GAP（12px = 0.75rem），
+    // 否则边缘与行距不同节奏。改 GAP/sm:gap-3 时需同步这里的 0.75rem。
+    expect(grid).toContain('padding-block: calc(var(--bm-row-gap, 0.75rem) - 0.75rem)');
   });
 });

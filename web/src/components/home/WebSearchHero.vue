@@ -68,7 +68,7 @@ defineExpose({ focusInput });
       :placeholder="t('home.webSearch')"
       :aria-label="t('home.webSearch')"
       aria-keyshortcuts="/ Control+K"
-      class="ui-search min-w-0 flex-1 rounded-r-[2rem] bg-transparent px-4 py-3 text-base outline-none md:py-3.5 md:text-[1.0625rem]"
+      class="ui-search min-w-0 flex-1 rounded-r-[2rem] bg-transparent px-4 py-3.5 text-base outline-none md:py-4 md:text-[1.0625rem]"
       @focus="focused = true"
       @blur="focused = false"
       @keydown.esc.prevent="onEscape"
@@ -96,6 +96,21 @@ defineExpose({ focusInput });
   transition:
     border-color var(--duration-medium) var(--ease-out),
     box-shadow var(--duration-medium) var(--ease-out);
+  /* 进场：组件挂载即渐现，像朋友先抬眼再开口——比生硬直出更细腻。
+     仅动 opacity/translate，不碰 box-shadow，与上面 :focus-within 过渡互不干扰。
+     prefers-reduced-motion 由 style.css 全局守卫归零，此处不重复声明。 */
+  animation: search-bar-enter var(--duration-slow) var(--ease-out) both;
+}
+
+@keyframes search-bar-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* 玻璃被点亮的基础反馈（鼠标点入 / 键盘聚焦都触发）：顶部高光加强 + 内描边/内发光

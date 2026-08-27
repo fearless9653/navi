@@ -38,7 +38,7 @@ const skeletonCount = computed(() => Math.min(Math.max(bm.pageSize, 1), MAX_PAGE
       key="loading"
       data-bm-grid
       data-test="bm-grid-skeleton"
-      class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3"
+      class="grid grid-cols-2 gap-3 sm:gap-3 md:grid-cols-3"
     >
       <div
         v-for="i in skeletonCount"
@@ -88,7 +88,7 @@ const skeletonCount = computed(() => Math.min(Math.max(bm.pageSize, 1), MAX_PAGE
       tag="div"
       name="bm"
       data-bm-grid
-      class="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3"
+      class="grid grid-cols-2 gap-3 sm:gap-3 md:grid-cols-3"
     >
       <BookmarkCard
         v-for="(b, i) in bm.items"
@@ -106,16 +106,15 @@ const skeletonCount = computed(() => Math.min(Math.max(bm.pageSize, 1), MAX_PAGE
 /* 桌面动态列数与行距：消费 HomeView 下发的 --bm-cols / --bm-row-gap
    （由 useResponsivePageSize 按网格实测宽/高反解）。
    列数覆盖静态 grid-cols-2/md:grid-cols-3（仅手机档生效）；行距仅覆盖 row-gap，
-   列距照旧走 gap-3/sm:gap-4。padding-block 为上下边缘补上均摊量
-   （行距 − 基础 GAP，此处 1rem 必须等于 sm:gap-4）：叠加 section gap-4 后，
-   「分隔线 ↔ 首行」「末行 ↔ 分页器」= 16 + 均摊量 = 行距，三种间距同节奏。
+   列距照旧走 gap-3/sm:gap-3。padding-block 的上下边缘 = 行距 − 基础 GAP，此处
+   0.75rem 必须等于 sm:gap-3（JS 侧 GAP=12），改 GAP/sm:gap-3 时同步此字面量。
    1024px 与「视口 < 1024 即手机」判据锚定同一断点，改动需与 useResponsivePageSize.ts
    的护栏注释四处同步。骨架屏共用同一 [data-bm-grid]，故加载态与内容态网格尺寸一致。 */
 @media (min-width: 1024px) {
   [data-bm-grid] {
     grid-template-columns: repeat(var(--bm-cols, 4), minmax(0, 1fr));
-    row-gap: var(--bm-row-gap, 1rem);
-    padding-block: calc(var(--bm-row-gap, 1rem) - 1rem);
+    row-gap: var(--bm-row-gap, 0.75rem);
+    padding-block: calc(var(--bm-row-gap, 0.75rem) - 0.75rem);
   }
 }
 

@@ -2,7 +2,8 @@ import { computed, ref, type Ref } from 'vue';
 import { useResizeMeasure } from './useResizeMeasure';
 
 const CARD_HEIGHT = 112; // 卡片固定高 h-28（两浏览器一致，可信任）
-const GAP = 16; // 桌面网格 sm:gap-4
+const GAP = 12; // 桌面网格 sm:gap-3（与移动端 gap-3 对齐；从 16 降到 12 以释放垂直空间，
+//   供 900px 量级逻辑视口的矮屏如 14 寸 2880×1800@200% 从 1 行翻回 2 行）
 // 网格下端到视口底部的预留高度：分页器(~46) + 主容器底部 padding(py-3=12) + 16。
 // 末尾的 16 是 section gap-4 的基础间距；余数均摊时上下边缘（网格 padding-block）
 // 与行距同步增长，故「末行 ↔ 分页器」「分隔线 ↔ 首行」实际间距 = 16 + 均摊量 = 行距。
