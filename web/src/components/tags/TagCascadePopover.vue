@@ -19,6 +19,7 @@ const selected = defineModel<number[]>({ default: () => [] });
 const { t } = useI18n();
 const open = ref(false);
 const triggerRef = ref<HTMLElement | null>(null);
+const panelRef = ref<HTMLElement | null>(null);
 const panelStyle = ref<Record<string, string>>({});
 
 /** 按触发按钮位置计算浮层的 fixed 坐标；空间不足时向上翻转。 */
@@ -61,8 +62,13 @@ function toggle(): void {
     open.value = true;
   }
 }
-function onWinChange(): void {
-  if (open.value) open.value = false;
+function onWinChange(e?: Event): void {
+  if (!open.value) return;
+  // 浮层内部滚动（标签多到出现滚动条时）不应关闭弹层；仅外部滚动/缩放才关闭。
+  if (e?.type === 'scroll' && e.target instanceof Node && panelRef.value?.contains(e.target)) {
+    return;
+  }
+  open.value = false;
 }
 function onKeydown(e: KeyboardEvent): void {
   if (!open.value || e.key !== 'Escape') return;
@@ -114,6 +120,7 @@ onUnmounted(() => {
       <Transition name="pop">
         <div
           v-if="open"
+          ref="panelRef"
           class="overflow-y-auto rounded-xl p-3 shadow-xl ui-surface"
           :style="panelStyle"
         >

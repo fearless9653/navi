@@ -44,6 +44,37 @@ describe('TagCascadePopover Esc 处理', () => {
     wrapper.unmount();
   });
 
+  it('浮层内部滚动（出现滚动条）不关闭弹层', async () => {
+    const wrapper = mountPopover();
+    await wrapper.find('button').trigger('click'); // 打开
+    await nextTick();
+    const panel = document.body.querySelector('.ui-surface');
+    expect(panel).not.toBeNull();
+
+    // 滚轮在浮层内滚动 → scroll 事件 target 在弹层内部，不应关闭。
+    panel!.dispatchEvent(new Event('scroll', { bubbles: true }));
+    await nextTick();
+
+    expect(document.body.querySelector('.ui-surface')).not.toBeNull(); // 弹层仍在
+
+    wrapper.unmount();
+  });
+
+  it('外部滚动（页面级）仍关闭弹层', async () => {
+    const wrapper = mountPopover();
+    await wrapper.find('button').trigger('click'); // 打开
+    await nextTick();
+    expect(document.body.querySelector('.ui-surface')).not.toBeNull();
+
+    // 页面级滚动 → target 不在弹层内部，应关闭。
+    window.dispatchEvent(new Event('scroll'));
+    await nextTick();
+
+    expect(document.body.querySelector('.ui-surface')).toBeNull(); // 弹层已关
+
+    wrapper.unmount();
+  });
+
   it('关闭状态下 Esc 不拦截（放行给外层）', async () => {
     const outerEsc = vi.fn();
     document.addEventListener('keydown', outerEsc);
