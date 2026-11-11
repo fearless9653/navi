@@ -692,6 +692,22 @@ body {
 }
 
 /* ============================================================
+ * 首页整页禁止划选 / Ctrl+A（输入框除外）。
+ * 由 useHomeNoSelect 在首页路由给 body 加上 .home-no-select。
+ * 不要再在首页子组件上单独写 user-select: none。
+ * ============================================================ */
+body.home-no-select {
+  -webkit-user-select: none;
+  user-select: none;
+}
+body.home-no-select input,
+body.home-no-select textarea,
+body.home-no-select [contenteditable] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ============================================================
  * 动效无障碍：尊重 prefers-reduced-motion（docs 06 §动效无障碍）
  * ============================================================ */
 @media (prefers-reduced-motion: reduce) {

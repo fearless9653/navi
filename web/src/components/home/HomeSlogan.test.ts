@@ -50,15 +50,14 @@ describe('HomeSlogan', () => {
     );
   });
 
-  it('prevents the home slogan from being selected with the mouse', () => {
+  it('does not special-case text selection; the homepage-wide scheme covers it', () => {
     const source = readFileSync(
       resolve(process.cwd(), 'web/src/components/home/HomeSlogan.vue'),
       'utf8',
     );
 
-    expect(source).toContain('user-select: none;');
-    expect(source).toContain('.home-slogan::after');
-    expect(source).toContain('pointer-events: auto;');
+    expect(source).not.toContain('user-select');
+    expect(source).not.toContain('.home-slogan::after');
   });
 
   it('渲染加粗段为更重的字重', () => {

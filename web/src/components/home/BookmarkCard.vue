@@ -76,7 +76,7 @@ onBeforeUnmount(clearTimer);
 
 <template>
   <div
-    class="group relative select-none"
+    class="group relative"
     :class="{ 'is-pressed': pressed }"
     @pointerdown="onPointerDown"
     @pointermove="onPointerMove"

@@ -81,7 +81,6 @@ function segStyle(seg: SloganSegment): Record<string, string> {
 }
 
 .home-slogan {
-  position: relative;
   max-width: 100%;
   margin: 0;
   color: var(--color-text-primary);
@@ -92,13 +91,5 @@ function segStyle(seg: SloganSegment): Record<string, string> {
   text-align: center;
   white-space: pre-wrap;
   text-shadow: 0 1px 14px color-mix(in srgb, var(--color-surface) 82%, transparent);
-  user-select: none;
-}
-
-.home-slogan::after {
-  position: absolute;
-  inset: 0;
-  content: '';
-  pointer-events: auto;
 }
 </style>
