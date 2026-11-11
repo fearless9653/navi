@@ -53,8 +53,8 @@ export interface FetchSuggestionsOptions {
   requestId?: string;
 }
 
+/** 已完成结果的短 TTL 缓存，跨请求复用安全；进行中的 Promise 不得放在模块级。 */
 const defaultCache: SuggestCache = new Map();
-const defaultInflight: SuggestInflight = new Map();
 
 export function suggestCacheKey(source: SuggestSource, q: string): string {
   return `${source}:${q}`;
@@ -330,7 +330,9 @@ async function fetchUpstream(
 /**
  * 按来源拉取联想词。超时、非 200、解析失败都返回空数组，不重试。
  * 成功（含上游合法空列表）写入短 TTL 内存缓存；失败不缓存。
- * 同 key 单飞，避免并发打穿上游。实现仅用 Map / fetch / AbortController，Workers 可用。
+ * 传入同一 inflight Map 时，同 key 单飞，避免同一请求内并发打穿上游。
+ * 未传入时不跨调用共享 Promise，避免 Workers 请求间 I/O 隔离问题。
+ * 实现仅用 Map / fetch / AbortController，Workers 可用。
  */
 export async function fetchSuggestions(
   source: SuggestSource,
@@ -342,7 +344,7 @@ export async function fetchSuggestions(
 
   const now = (opts.now ?? Date.now)();
   const cache = opts.cache ?? defaultCache;
-  const inflight = opts.inflight ?? defaultInflight;
+  const inflight = opts.inflight ?? new Map();
   const key = suggestCacheKey(source, query);
   const cached = cacheGet(cache, key, now);
   if (cached) return cached;

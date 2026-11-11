@@ -9,6 +9,7 @@ import {
   sanitizeSuggestErrorMessage,
   SUGGEST_LOG_COMPONENT,
   type SuggestCache,
+  type SuggestInflight,
 } from '@/services/suggest';
 
 function jsonResponse(
@@ -440,5 +441,48 @@ describe('suggest fetch this binding', () => {
       }),
     ).resolves.toEqual(['one']);
     expect(seen).toEqual([undefined]);
+  });
+});
+
+describe('suggest inflight scoping', () => {
+  function deferred<T>() {
+    let resolve!: (value: T) => void;
+    const promise = new Promise<T>((res) => {
+      resolve = res;
+    });
+    return { promise, resolve };
+  }
+
+  it('未传入 inflight 时，并发同 key 各自请求，不共享 Promise', async () => {
+    const gate = deferred<void>();
+    const fetchImpl = vi.fn(async () => {
+      await gate.promise;
+      return jsonResponse(['q', ['one']]);
+    });
+    const cache: SuggestCache = new Map();
+    const first = fetchSuggestions('google', '天气', { fetchImpl, cache });
+    const second = fetchSuggestions('google', '天气', { fetchImpl, cache });
+    await vi.waitFor(() => expect(fetchImpl).toHaveBeenCalledTimes(2));
+    gate.resolve();
+    await expect(first).resolves.toEqual(['one']);
+    await expect(second).resolves.toEqual(['one']);
+  });
+
+  it('传入同一 inflight 时，并发同 key 单飞', async () => {
+    const gate = deferred<void>();
+    const fetchImpl = vi.fn(async () => {
+      await gate.promise;
+      return jsonResponse(['q', ['one']]);
+    });
+    const cache: SuggestCache = new Map();
+    const inflight: SuggestInflight = new Map();
+    const first = fetchSuggestions('google', '天气', { fetchImpl, cache, inflight });
+    const second = fetchSuggestions('google', '天气', { fetchImpl, cache, inflight });
+    await vi.waitFor(() => expect(fetchImpl).toHaveBeenCalledTimes(1));
+    gate.resolve();
+    await expect(first).resolves.toEqual(['one']);
+    await expect(second).resolves.toEqual(['one']);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    expect(inflight.size).toBe(0);
   });
 });

@@ -97,7 +97,11 @@ export function engineRoutes(db: DB, opts: EngineRouteOptions = {}) {
     const source = asSuggestSource(engine.suggestSource);
     if (!source) return c.json({ q, suggestions: [] as string[] });
 
-    const suggestions = await fetchSuggestions(source, q, { fetchImpl: opts.fetchImpl, requestId });
+    const suggestions = await fetchSuggestions(source, q, {
+      fetchImpl: opts.fetchImpl,
+      requestId,
+      inflight: new Map(),
+    });
     return c.json({ q, suggestions });
   });
 
