@@ -94,6 +94,7 @@ export async function createUser(db: DB, input: CreateUserInput): Promise<Public
         userId: created.id,
         name: e.name,
         urlTemplate: e.urlTemplate,
+        iconUrl: e.iconUrl,
         sortOrder: i,
         isDefault: i === 0,
       }),

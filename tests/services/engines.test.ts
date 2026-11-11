@@ -21,6 +21,11 @@ describe('engines service', () => {
     const { db, userId } = await seedUser();
     const list = await listEngines(db, userId);
     expect(list.map((e) => e.name)).toEqual(['Google', 'Bing', 'DuckDuckGo']);
+    expect(list.map((e) => e.iconUrl)).toEqual([
+      'https://www.google.com/favicon.ico',
+      'https://edgestatic.azureedge.net/shared/cms/lrs1c69a1j/logos/b3bed8dc525c4433afbdd24bb71ea2fc-png-w128.avif',
+      'https://duckduckgo.com/static-assets/favicons/favicon.ico',
+    ]);
     expect(list[0]!.isDefault).toBe(true);
     expect(list.slice(1).every((e) => !e.isDefault)).toBe(true);
   });
