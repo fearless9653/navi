@@ -91,3 +91,38 @@ describe('TagCascadePopover Esc 处理', () => {
     wrapper.unmount();
   });
 });
+
+describe('TagCascadePopover 关闭与滚动容器', () => {
+  afterEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  it('点击浮层外的遮罩关闭弹层', async () => {
+    const wrapper = mountPopover();
+    await wrapper.find('button').trigger('click');
+    await nextTick();
+
+    const overlay = document.body.querySelector('[data-test="tag-popover-overlay"]');
+    expect(overlay).not.toBeNull();
+    expect((overlay as HTMLElement).style.zIndex).toBe('var(--z-popover)');
+
+    overlay!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await nextTick();
+
+    expect(document.body.querySelector('[data-test="tag-popover-panel"]')).toBeNull();
+    wrapper.unmount();
+  });
+
+  it('面板本身不出现外框纵向滚动条（overflow hidden）', async () => {
+    const wrapper = mountPopover();
+    await wrapper.find('button').trigger('click');
+    await nextTick();
+
+    const panel = document.body.querySelector('[data-test="tag-popover-panel"]') as HTMLElement;
+    expect(panel).not.toBeNull();
+    expect(panel.classList.contains('overflow-hidden')).toBe(true);
+    expect(panel.classList.contains('overflow-y-auto')).toBe(false);
+
+    wrapper.unmount();
+  });
+});

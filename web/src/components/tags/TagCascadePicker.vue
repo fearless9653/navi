@@ -9,11 +9,14 @@ const props = withDefaults(
     searchable?: boolean;
     multiple?: boolean;
     excludeIds?: number[];
+    /** 填满父级高度，由浮层使用；独立嵌入（如编辑标签）仍用固定 max-height。 */
+    fill?: boolean;
   }>(),
   {
     searchable: true,
     multiple: true,
     excludeIds: () => [],
+    fill: false,
   },
 );
 
@@ -118,7 +121,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div>
+  <div :class="props.fill ? 'flex h-full min-h-0 flex-col' : undefined">
     <!-- 单选模式：无父标签 / 已选摘要 -->
     <div v-if="!props.multiple" class="mb-2 flex items-center justify-between gap-2">
       <button
@@ -148,11 +151,16 @@ onMounted(async () => {
       type="text"
       :placeholder="t('common.search')"
       class="mb-2 w-full ui-field-sm"
+      :class="{ 'shrink-0': props.fill }"
       @input="onSearch"
     />
 
     <!-- 搜索结果（扁平） -->
-    <ul v-if="props.searchable && search.trim()" class="max-h-64 space-y-0.5 overflow-y-auto">
+    <ul
+      v-if="props.searchable && search.trim()"
+      class="tag-list-scroll space-y-0.5 overflow-y-auto"
+      :class="props.fill ? 'min-h-0 flex-1' : 'max-h-64'"
+    >
       <li v-for="tg in searchResults" :key="tg.id">
         <button
           type="button"
@@ -173,12 +181,16 @@ onMounted(async () => {
     </ul>
 
     <!-- Miller 级联列 -->
-    <div v-else class="flex gap-2 overflow-x-auto">
+    <div
+      v-else
+      class="flex gap-2 overflow-x-auto overflow-y-hidden"
+      :class="props.fill ? 'min-h-0 flex-1' : undefined"
+    >
       <ul
         v-for="(col, ci) in columns"
         :key="ci"
-        class="max-h-64 min-w-40 shrink-0 space-y-0.5 overflow-y-auto ui-divider"
-        :class="{ 'border-l pl-2': ci > 0 }"
+        class="tag-list-scroll min-w-40 shrink-0 space-y-0.5 overflow-y-auto ui-divider"
+        :class="[ci > 0 ? 'border-l pl-2' : undefined, props.fill ? 'h-full min-h-0' : 'max-h-64']"
       >
         <li v-for="tg in col" :key="tg.id" class="flex items-center gap-1">
           <button
@@ -207,3 +219,24 @@ onMounted(async () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.tag-list-scroll {
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-text-faint) 28%, transparent) transparent;
+}
+.tag-list-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.tag-list-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background-color: color-mix(in srgb, var(--color-text-faint) 28%, transparent);
+  background-clip: content-box;
+  border: 2px solid transparent;
+}
+.tag-list-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+</style>
