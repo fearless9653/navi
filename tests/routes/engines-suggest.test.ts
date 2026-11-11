@@ -1,8 +1,9 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createApp } from '@/app';
 import { createTestDb } from '../helpers/testDb';
 import { createUser, getUserByEmail } from '@/services/users';
 import { listEngines, updateEngine } from '@/services/engines';
+import { SUGGEST_LOG_COMPONENT } from '@/services/suggest';
 
 type App = ReturnType<typeof createApp>;
 const ORIGIN = 'http://localhost';
@@ -12,9 +13,13 @@ function cookieFrom(res: Response): string {
   return m ? `navi_session=${m[1]}` : '';
 }
 
-function get(app: App, path: string, cookie?: string) {
+function get(app: App, path: string, cookie?: string, extraHeaders?: Record<string, string>) {
   return app.request(path, {
-    headers: cookie ? { Cookie: cookie, Origin: ORIGIN } : { Origin: ORIGIN },
+    headers: {
+      Origin: ORIGIN,
+      ...(cookie ? { Cookie: cookie } : {}),
+      ...extraHeaders,
+    },
   });
 }
 
@@ -172,5 +177,110 @@ describe('GET /api/engines/:id/suggest', () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ q: 'weather', suggestions: [] });
     expect(fetchImpl).not.toHaveBeenCalled();
+  });
+});
+
+describe('GET /api/engines/:id/suggest logging', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  function mockConsole() {
+    return {
+      info: vi.spyOn(console, 'info').mockImplementation(() => {}),
+      warn: vi.spyOn(console, 'warn').mockImplementation(() => {}),
+    };
+  }
+
+  function payloadsOf(spy: { mock: { calls: unknown[][] } }): Record<string, unknown>[] {
+    return spy.mock.calls.map((args) => args[0] as Record<string, unknown>);
+  }
+
+  function serializeCalls(spy: { mock: { calls: unknown[][] } }): string {
+    return spy.mock.calls
+      .map((args) =>
+        args.map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg))).join(' '),
+      )
+      .join('\n');
+  }
+
+  it('来源为无或空查询时不打日志、不打上游', async () => {
+    const { info, warn } = mockConsole();
+    const fetchImpl = vi.fn();
+    const db = createTestDb();
+    const app = createApp(db, { secureCookie: false, suggestFetch: fetchImpl });
+    const cookie = await setupAdmin(app);
+    const { engines } = (await (await get(app, '/api/engines', cookie)).json()) as {
+      engines: { id: number }[];
+    };
+    const q = '天地secret-query';
+    const noneRes = await get(
+      app,
+      `/api/engines/${engines[0]!.id}/suggest?q=${encodeURIComponent(q)}`,
+      cookie,
+      { 'cf-ray': 'a58b98806f7b795b-NRT' },
+    );
+    expect(noneRes.status).toBe(200);
+    expect(await noneRes.json()).toEqual({ q, suggestions: [] });
+
+    const emptyRes = await get(app, `/api/engines/${engines[0]!.id}/suggest?q=%20`, cookie, {
+      'cf-ray': 'ray-empty-route',
+    });
+    expect(emptyRes.status).toBe(200);
+    expect(await emptyRes.json()).toEqual({ q: '', suggestions: [] });
+    expect(fetchImpl).not.toHaveBeenCalled();
+    expect(info).not.toHaveBeenCalled();
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('成功路径不打日志；失败时透传 requestId 且不含查询词', async () => {
+    const { info, warn } = mockConsole();
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(['天地secret-query', ['one']]))
+      .mockRejectedValueOnce(
+        new TypeError(
+          'Failed to fetch: https://suggestqueries.google.com/complete/search?q=天地secret-query',
+        ),
+      );
+    const db = createTestDb();
+    const app = createApp(db, { secureCookie: false, suggestFetch: fetchImpl });
+    const cookie = await setupAdmin(app);
+    const admin = (await getUserByEmail(db, 'admin@x.com'))!;
+    const engine = (await listEngines(db, admin.id))[0]!;
+    await updateEngine(db, admin.id, engine.id, { suggestSource: 'google' });
+
+    const q = '天地secret-query';
+    const ok = await get(
+      app,
+      `/api/engines/${engine.id}/suggest?q=${encodeURIComponent(q)}`,
+      cookie,
+      { 'cf-ray': 'ray-success-route' },
+    );
+    expect(ok.status).toBe(200);
+    expect(await ok.json()).toEqual({ q, suggestions: ['one'] });
+    expect(info).not.toHaveBeenCalled();
+    expect(warn).not.toHaveBeenCalled();
+
+    const failQ = `${q}-retry`;
+    const fail = await get(
+      app,
+      `/api/engines/${engine.id}/suggest?q=${encodeURIComponent(failQ)}`,
+      cookie,
+      { 'cf-ray': 'ray-error-route' },
+    );
+    expect(fail.status).toBe(200);
+    expect(await fail.json()).toEqual({ q: failQ, suggestions: [] });
+    expect(payloadsOf(warn)[0]).toMatchObject({
+      component: SUGGEST_LOG_COMPONENT,
+      event: 'upstream_error',
+      source: 'google',
+      requestId: 'ray-error-route',
+      reason: 'network',
+    });
+    const text = serializeCalls(info) + serializeCalls(warn);
+    expect(text).not.toContain(q);
+    expect(text).not.toContain('secret-query');
+    expect(text).not.toContain('suggestqueries.google.com');
   });
 });

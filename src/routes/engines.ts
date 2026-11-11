@@ -44,7 +44,10 @@ export interface EngineRouteOptions {
 
 function writeError(e: unknown) {
   if (e instanceof LimitExceededError) {
-    return { body: { error: 'limit_exceeded', resource: e.resource, limit: e.limit }, status: 409 as const };
+    return {
+      body: { error: 'limit_exceeded', resource: e.resource, limit: e.limit },
+      status: 409 as const,
+    };
   }
   const message = (e as Error).message;
   if (message === 'invalid_suggest_source') {
@@ -88,12 +91,13 @@ export function engineRoutes(db: DB, opts: EngineRouteOptions = {}) {
     if (!engine) return c.json({ error: 'not_found' }, 404);
 
     const q = (c.req.query('q') ?? '').trim().slice(0, MAX_SUGGEST_Q_LENGTH);
+    const requestId = c.req.header('cf-ray') ?? undefined;
     if (!q) return c.json({ q, suggestions: [] as string[] });
 
     const source = asSuggestSource(engine.suggestSource);
     if (!source) return c.json({ q, suggestions: [] as string[] });
 
-    const suggestions = await fetchSuggestions(source, q, { fetchImpl: opts.fetchImpl });
+    const suggestions = await fetchSuggestions(source, q, { fetchImpl: opts.fetchImpl, requestId });
     return c.json({ q, suggestions });
   });
 

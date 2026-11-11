@@ -1,5 +1,6 @@
 /** 抓取 service：在 SSRF 防护下取网页并抽元数据。可注入 fetchImpl / lookup，便于测试。 */
 import { decodeHtmlBytes } from './charset';
+import { resolveFetch } from './runtimeFetch';
 import { assertSafeUrl, isBlockedAddress } from './ssrf';
 import { extractMetadata, type Metadata } from './metadata';
 
@@ -158,7 +159,7 @@ export async function fetchMetadata(
   rawUrl: string,
   opts: FetchMetadataOptions = {},
 ): Promise<Metadata> {
-  const fetchImpl = opts.fetchImpl ?? fetch;
+  const fetchImpl = resolveFetch(opts.fetchImpl);
   const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT;
   const maxBytes = opts.maxBytes ?? DEFAULT_MAX_BYTES;
   const maxRedirects = opts.maxRedirects ?? DEFAULT_MAX_REDIRECTS;
@@ -279,7 +280,8 @@ async function fetchHop(
       (init as { dispatcher?: unknown }).dispatcher = dispatcher;
     }
     try {
-      return await ctx.fetchImpl(current.toString(), init);
+      const doFetch = ctx.fetchImpl;
+      return await doFetch(current.toString(), init);
     } catch (e) {
       lastErr = e;
       if (isAbortError(e) || !ip || ip === candidates[candidates.length - 1]) throw e;

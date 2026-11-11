@@ -1,4 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
+import { afterEach, describe, it, expect, vi } from 'vitest';
+import { installStrictGlobalFetch } from '../helpers/strictFetch';
 import { FETCH_USER_AGENT, fetchMetadata } from '@/services/fetcher';
 
 function htmlResponse(html: string, contentType = 'text/html; charset=utf-8'): Response {
@@ -220,10 +221,12 @@ describe('fetchMetadata', () => {
 
   it('首选 IP 连接失败时回退到下一个地址', async () => {
     const makeDispatcher = vi.fn((ip: string) => ({ close: vi.fn(), ip }));
-    const fetchImpl = vi.fn(async (_url: string, init?: RequestInit & { dispatcher?: { ip: string } }) => {
-      if (init?.dispatcher?.ip === '93.184.216.34') throw new Error('connect_failed');
-      return htmlResponse('<title>Fallback</title>');
-    });
+    const fetchImpl = vi.fn(
+      async (_url: string, init?: RequestInit & { dispatcher?: { ip: string } }) => {
+        if (init?.dispatcher?.ip === '93.184.216.34') throw new Error('connect_failed');
+        return htmlResponse('<title>Fallback</title>');
+      },
+    );
     const md = await fetchMetadata('https://example.com', {
       fetchImpl: fetchImpl as unknown as typeof fetch,
       lookup: async () => ['2001:db8::1', '93.184.216.34'],
@@ -241,10 +244,47 @@ describe('fetchMetadata', () => {
       ...title,
       ...new TextEncoder().encode('</title>'),
     ]);
-    const fetchImpl = vi.fn(async () => new Response(body, { headers: { 'content-type': 'text/html; charset=gbk' } }));
+    const fetchImpl = vi.fn(
+      async () => new Response(body, { headers: { 'content-type': 'text/html; charset=gbk' } }),
+    );
     const md = await fetchMetadata('https://example.com', {
       fetchImpl: fetchImpl as unknown as typeof fetch,
     });
     expect(md.title).toBe('你好');
+  });
+});
+
+describe('fetchMetadata this binding', () => {
+  const restores: Array<() => void> = [];
+  afterEach(() => {
+    while (restores.length) restores.pop()!();
+  });
+
+  it('默认全局 fetch 与显式注入 globalThis.fetch 都以 globalThis 为接收者', async () => {
+    let calls = 0;
+    restores.push(
+      installStrictGlobalFetch(async () => {
+        calls += 1;
+        return htmlResponse('<title>Strict</title>');
+      }),
+    );
+    const a = await fetchMetadata('https://example.com');
+    expect(a.title).toBe('Strict');
+    const b = await fetchMetadata('https://example.com', { fetchImpl: globalThis.fetch });
+    expect(b.title).toBe('Strict');
+    expect(calls).toBe(2);
+  });
+
+  it('普通注入函数保持裸调用，不会被 bind 到 globalThis', async () => {
+    const seen: unknown[] = [];
+    const fetchImpl = async function (this: unknown) {
+      seen.push(this);
+      return htmlResponse('<title>Bare</title>');
+    };
+    const md = await fetchMetadata('https://example.com', {
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+    expect(md.title).toBe('Bare');
+    expect(seen).toEqual([undefined]);
   });
 });
