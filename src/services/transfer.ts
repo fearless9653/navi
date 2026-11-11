@@ -5,7 +5,7 @@ import { runWrite } from '@/db/tx';
 import { chunk, MAX_SQL_PARAMS } from '@/db/chunk';
 import { invalidateTagCache, listTags } from './tags';
 import { DEFAULT_BOOKMARK_WEIGHT, loadTagsByBookmark } from './bookmarks';
-import { invalidateEnginesCache, listEngines } from './engines';
+import { asSuggestSource, invalidateEnginesCache, listEngines } from './engines';
 import { getPrefs, invalidatePrefsCache } from './prefs';
 import { assertCountWithinLimit } from './limits';
 
@@ -28,6 +28,7 @@ export interface NaviExport {
     iconUrl: string | null;
     sortOrder: number;
     isDefault: boolean;
+    suggestSource: 'google' | 'baidu' | null;
   }[];
   prefs: {
     recentCount: number;
@@ -101,6 +102,7 @@ export async function exportData(
       iconUrl: e.iconUrl,
       sortOrder: e.sortOrder,
       isDefault: e.isDefault,
+      suggestSource: asSuggestSource(e.suggestSource),
     })),
     prefs: {
       recentCount: prefs.recentCount,
@@ -134,6 +136,8 @@ export interface ImportData {
     iconUrl?: string | null;
     sortOrder?: number;
     isDefault?: boolean;
+    /** 旧备份缺此字段时按无处理。 */
+    suggestSource?: 'google' | 'baidu' | null;
   }[];
   prefs?: {
     recentCount: number;
@@ -331,6 +335,7 @@ export async function importData(
             iconUrl: e.iconUrl ?? null,
             sortOrder: e.sortOrder ?? i,
             isDefault: e.isDefault ?? false,
+            suggestSource: asSuggestSource(e.suggestSource),
           }),
         ),
       ]);
@@ -345,6 +350,7 @@ export async function importData(
             iconUrl: e.iconUrl ?? null,
             sortOrder: e.sortOrder ?? 0,
             isDefault: false,
+            suggestSource: asSuggestSource(e.suggestSource),
           }),
         );
       await runWrite(db, inserts);

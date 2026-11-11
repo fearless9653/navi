@@ -85,7 +85,7 @@ watch(currentIconUrl, () => {
   overflow: hidden;
   display: flex;
   height: 100%;
-  width: 7rem;
+  width: var(--engine-trigger-width, 7rem);
   align-items: center;
   border-right: 1px solid var(--color-border);
   border-top-left-radius: 2rem;

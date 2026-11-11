@@ -6,6 +6,21 @@ import { assertWithinLimit } from './limits';
 
 export type Engine = typeof searchEngines.$inferSelect;
 
+export const SUGGEST_SOURCES = ['google', 'baidu'] as const;
+export type SuggestSource = (typeof SUGGEST_SOURCES)[number];
+
+/** 校验建议来源：缺省 / 空 / null → null（无）；非法值抛 invalid_suggest_source。 */
+export function parseSuggestSource(value: unknown): SuggestSource | null {
+  if (value === undefined || value === null || value === '') return null;
+  if (value === 'google' || value === 'baidu') return value;
+  throw new Error('invalid_suggest_source');
+}
+
+/** 读库或导入时的宽松解析：仅 google / baidu 有效，其余（含非法值）按无处理。 */
+export function asSuggestSource(value: unknown): SuggestSource | null {
+  return value === 'google' || value === 'baidu' ? value : null;
+}
+
 const enginesCache = new WeakMap<DB, Map<number, Engine[]>>();
 
 function cloneEngine(engine: Engine): Engine {
@@ -63,6 +78,8 @@ export interface CreateEngineInput {
   iconUrl?: string | null;
   sortOrder?: number;
   isDefault?: boolean;
+  /** 省略或 null 表示无。 */
+  suggestSource?: SuggestSource | null;
 }
 
 export async function createEngine(
@@ -81,6 +98,7 @@ export async function createEngine(
       iconUrl: input.iconUrl ?? null,
       sortOrder: input.sortOrder ?? 0,
       isDefault: input.isDefault ?? false,
+      suggestSource: parseSuggestSource(input.suggestSource),
     })
     .returning()
     .get();
@@ -103,6 +121,8 @@ export interface UpdateEngineInput {
   iconUrl?: string | null;
   sortOrder?: number;
   isDefault?: boolean;
+  /** 省略表示不变；显式 null 清为无。 */
+  suggestSource?: SuggestSource | null;
 }
 
 /** 更新引擎；设默认时清其他默认。跨用户/不存在 → 无副作用。 */
@@ -122,6 +142,7 @@ export async function updateEngine(
   if ('iconUrl' in input) patch.iconUrl = input.iconUrl ?? null;
   if (input.sortOrder !== undefined) patch.sortOrder = input.sortOrder;
   if (input.isDefault !== undefined) patch.isDefault = input.isDefault;
+  if ('suggestSource' in input) patch.suggestSource = parseSuggestSource(input.suggestSource);
 
   const stmts: WriteStatement[] = [];
   if (input.isDefault === true) {

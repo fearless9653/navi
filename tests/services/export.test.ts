@@ -5,6 +5,7 @@ import { createTag } from '@/services/tags';
 import { createBookmark } from '@/services/bookmarks';
 import { updatePrefs } from '@/services/prefs';
 import { exportData } from '@/services/transfer';
+import { updateEngine, listEngines } from '@/services/engines';
 
 async function seedA(db = createTestDb()) {
   const a = (await createUser(db, { email: 'a@x.com', password: 'password123', displayName: 'A' }))
@@ -77,5 +78,17 @@ describe('exportData', () => {
     await createBookmark(db, b, { url: 'https://b-secret.com', name: 'B-secret' });
     const out = await exportData(db, a, new Date(0));
     expect(out.bookmarks.some((x) => x.url.includes('b-secret'))).toBe(false);
+  });
+
+  it('导出包含 suggestSource；旧引擎空值为 null', async () => {
+    const { db, a } = await seedA();
+    const out = await exportData(db, a, new Date(0));
+    expect(out.engines.every((e) => e.suggestSource === null)).toBe(true);
+
+    const google = (await listEngines(db, a)).find((e) => e.name === 'Google')!;
+    await updateEngine(db, a, google.id, { suggestSource: 'google' });
+    const again = await exportData(db, a, new Date(0));
+    const byName = Object.fromEntries(again.engines.map((e) => [e.name, e.suggestSource]));
+    expect(byName).toEqual({ Google: 'google', Bing: null, DuckDuckGo: null });
   });
 });

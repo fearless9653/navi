@@ -23,20 +23,33 @@ const open = ref(false);
 const wrapperRef = ref<HTMLElement | null>(null);
 const menuRef = ref<HTMLElement | null>(null);
 const menuStyle = ref<Record<string, string>>({});
+const layer = ref('var(--z-dropdown)');
 
 /**
  * 按触发按钮位置计算浮层的 fixed 坐标。
  * 用 Teleport + fixed 脱离触发处的层叠上下文（如毛玻璃 backdrop-filter 容器），
  * 否则 z-index 会被限制在该上下文内，被页面其它内容遮挡。
+ *
+ * 触发器若在弹窗内，浮层改走 --z-popover（高于 --z-modal）。
+ * 页面级下拉仍用 --z-dropdown，避免盖住弹窗；弹窗内若仍用 --z-dropdown，
+ * 列表会被传送到 body 后画在遮罩后面（选标签的 TagCascadePopover 已按此处理）。
  */
+function layerToken(): string {
+  return wrapperRef.value?.closest('.modal-overlay')
+    ? 'var(--z-popover)'
+    : 'var(--z-dropdown)';
+}
+
 function computePosition(): void {
   const el = wrapperRef.value;
   if (!el) return;
   const r = el.getBoundingClientRect();
+  const token = layerToken();
+  layer.value = token;
   const style: Record<string, string> = {
     position: 'fixed',
     top: `${r.bottom + 4}px`,
-    zIndex: 'calc(var(--z-dropdown) + 1)',
+    zIndex: `calc(${token} + 1)`,
   };
   if (props.align === 'right') {
     style.right = `${window.innerWidth - r.right}px`;
@@ -116,7 +129,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
     <slot name="trigger" :toggle="toggle" :open="open" :close="close" />
     <!-- 传送到 body：脱离触发处的层叠上下文（毛玻璃容器等），令 z-index 相对页面根生效。 -->
     <Teleport to="body">
-      <div v-if="open" class="dropdown-scrim" data-test="dropdown-scrim" @pointerdown="onBackdropPointerDown" @pointerup="onBackdropPointerUp" />
+      <div v-if="open" class="dropdown-scrim" data-test="dropdown-scrim" :style="{ zIndex: layer }" @pointerdown="onBackdropPointerDown" @pointerup="onBackdropPointerUp" />
       <!-- 浮层弹出/收起动效（pop 过渡见 style.css，enter/leave 对称）；遮罩瞬显不参与过渡。 -->
       <Transition name="pop">
         <div v-if="open" ref="menuRef" class="dropdown-menu ui-surface" :style="menuStyle">
@@ -135,7 +148,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
 .dropdown-scrim {
   position: fixed;
   inset: 0;
-  z-index: var(--z-dropdown);
+  /* z-index 由内联 layer 提供：页面级 --z-dropdown，弹窗内 --z-popover。 */
 }
 
 .dropdown-menu {

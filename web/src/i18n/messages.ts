@@ -55,6 +55,7 @@ export const messages = {
     },
     home: {
       webSearch: '想找点什么？',
+      searchSuggest: '搜索建议',
       recent: '最近访问',
       byVisits: '访问次数',
       byWeight: '自设权重',
@@ -146,6 +147,11 @@ export const messages = {
       editTag: '编辑标签',
       newEngine: '新建引擎',
       editEngine: '编辑引擎',
+      suggestSource: '搜索建议',
+      suggestSourceNone: '无',
+      suggestSourceGoogle: '谷歌',
+      suggestSourceBaidu: '百度',
+      suggestSourceHint: '输入时显示联想词，由服务端代理；选「无」则关闭。每条引擎单独配置。',
     },
     settings: {
       title: '设置',
@@ -290,6 +296,7 @@ export const messages = {
     },
     home: {
       webSearch: 'Looking for something?',
+      searchSuggest: 'Search suggestions',
       recent: 'Recent',
       byVisits: 'Most visited',
       byWeight: 'Weighted',
@@ -381,6 +388,12 @@ export const messages = {
       editTag: 'Edit tag',
       newEngine: 'New engine',
       editEngine: 'Edit engine',
+      suggestSource: 'Search suggestions',
+      suggestSourceNone: 'None',
+      suggestSourceGoogle: 'Google',
+      suggestSourceBaidu: 'Baidu',
+      suggestSourceHint:
+        'Show typeahead suggestions via the server proxy. Choose None to disable. Configured per engine.',
     },
     settings: {
       title: 'Settings',

@@ -22,6 +22,8 @@ export interface AppOptions {
   secureCookie?: boolean;
   /** 抓取实现（可注入；默认仅字面量 SSRF 校验，Node 入口可注入带 DNS 复核的版本）。 */
   fetchMeta?: FetchMetaFn;
+  /** 搜索建议上游 fetch（可注入；默认全局 fetch，测试中避免打真实网络）。 */
+  suggestFetch?: typeof fetch;
   /**
    * 取可信客户端 IP，用于登录限流按来源计数。
    * 不传则回落到不区分来源（仅按邮箱限流）。运行时相关：Node 用 socket 远端地址，
@@ -62,7 +64,7 @@ export function createApp(db: DB, opts: AppOptions = {}) {
   app.route('/api/admin/users', adminUserRoutes(db));
   app.route('/api/tags', tagRoutes(db));
   app.route('/api/bookmarks', bookmarkRoutes(db, { fetchMeta }));
-  app.route('/api/engines', engineRoutes(db));
+  app.route('/api/engines', engineRoutes(db, { fetchImpl: opts.suggestFetch }));
   app.route('/api/prefs', prefsRoutes(db));
   app.route('/api/fetch', fetchRoutes(db, { fetchMeta }));
   app.route('/api/bing', bingRoutes());

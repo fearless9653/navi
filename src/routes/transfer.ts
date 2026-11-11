@@ -39,6 +39,7 @@ const importSchema = z.object({
           iconUrl: z.string().nullable().optional(),
           sortOrder: z.number().int().optional(),
           isDefault: z.boolean().optional(),
+          suggestSource: z.enum(['google', 'baidu']).nullable().optional(),
         }),
       )
       .optional(),

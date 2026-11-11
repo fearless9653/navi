@@ -16,6 +16,7 @@ const GOOGLE: Engine = {
   iconUrl: 'https://www.google.com/favicon.ico',
   sortOrder: 0,
   isDefault: true,
+  suggestSource: null,
 };
 
 const CUSTOM: Engine = {
@@ -25,6 +26,7 @@ const CUSTOM: Engine = {
   iconUrl: null,
   sortOrder: 1,
   isDefault: false,
+  suggestSource: null,
 };
 
 function seed(list: Engine[], currentId = list[0]!.id): void {

@@ -51,6 +51,8 @@ export interface TopLists {
  */
 export type BookmarkListItem = Omit<Bookmark, 'tags'> & { tagIds: number[] };
 
+export type SuggestSource = 'google' | 'baidu';
+
 export interface Engine {
   id: number;
   name: string;
@@ -58,6 +60,8 @@ export interface Engine {
   iconUrl: string | null;
   sortOrder: number;
   isDefault: boolean;
+  /** null / 缺省表示无搜索建议。 */
+  suggestSource: SuggestSource | null;
 }
 
 export interface MusicTrack {

@@ -12,6 +12,7 @@ const BUILTIN: Engine[] = [
     iconUrl: 'https://www.google.com/favicon.ico',
     sortOrder: 0,
     isDefault: true,
+    suggestSource: null,
   },
   {
     id: -2,
@@ -21,6 +22,7 @@ const BUILTIN: Engine[] = [
       'https://edgestatic.azureedge.net/shared/cms/lrs1c69a1j/logos/b3bed8dc525c4433afbdd24bb71ea2fc-png-w128.avif',
     sortOrder: 1,
     isDefault: false,
+    suggestSource: null,
   },
   {
     id: -3,
@@ -29,6 +31,7 @@ const BUILTIN: Engine[] = [
     iconUrl: 'https://duckduckgo.com/static-assets/favicons/favicon.ico',
     sortOrder: 2,
     isDefault: false,
+    suggestSource: null,
   },
 ];
 

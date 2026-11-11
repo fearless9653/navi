@@ -172,3 +172,71 @@ describe('engines service', () => {
     expect(bList.some((e) => e.id === bEngine.id && e.name === 'Google')).toBe(true);
   });
 });
+
+describe('engines suggestSource', () => {
+  it('建号预置引擎的 suggestSource 为空（不因名称推断）', async () => {
+    const { db, userId } = await seedUser();
+    const list = await listEngines(db, userId);
+    expect(list.map((e) => e.suggestSource)).toEqual([null, null, null]);
+  });
+
+  it('create 省略或 null 存为 null；google/baidu 可持久化', async () => {
+    const { db, userId } = await seedUser();
+    const omitted = await createEngine(db, userId, {
+      name: 'Kagi',
+      urlTemplate: 'https://kagi.com/search?q={query}',
+    });
+    expect(omitted.suggestSource).toBeNull();
+
+    const none = await createEngine(db, userId, {
+      name: 'Startpage',
+      urlTemplate: 'https://www.startpage.com/sp/search?query={query}',
+      suggestSource: null,
+    });
+    expect(none.suggestSource).toBeNull();
+
+    const google = await createEngine(db, userId, {
+      name: 'G',
+      urlTemplate: 'https://www.google.com/search?q={query}',
+      suggestSource: 'google',
+    });
+    expect(google.suggestSource).toBe('google');
+
+    const baidu = await createEngine(db, userId, {
+      name: 'B',
+      urlTemplate: 'https://www.baidu.com/s?wd={query}',
+      suggestSource: 'baidu',
+    });
+    expect(baidu.suggestSource).toBe('baidu');
+  });
+
+  it('create 拒绝非法来源', async () => {
+    const { db, userId } = await seedUser();
+    await expect(
+      createEngine(db, userId, {
+        name: 'X',
+        urlTemplate: 'https://x.com/search?q={query}',
+        suggestSource: 'bing' as unknown as 'google',
+      }),
+    ).rejects.toThrow('invalid_suggest_source');
+  });
+
+  it('update 省略不变，显式 null 清为无', async () => {
+    const { db, userId } = await seedUser();
+    const engine = await createEngine(db, userId, {
+      name: 'Custom',
+      urlTemplate: 'https://example.com/search?q={query}',
+      suggestSource: 'google',
+    });
+    await updateEngine(db, userId, engine.id, { name: 'Custom 2' });
+    expect((await listEngines(db, userId)).find((e) => e.id === engine.id)?.suggestSource).toBe(
+      'google',
+    );
+    await updateEngine(db, userId, engine.id, { suggestSource: 'baidu' });
+    expect((await listEngines(db, userId)).find((e) => e.id === engine.id)?.suggestSource).toBe(
+      'baidu',
+    );
+    await updateEngine(db, userId, engine.id, { suggestSource: null });
+    expect((await listEngines(db, userId)).find((e) => e.id === engine.id)?.suggestSource).toBeNull();
+  });
+});

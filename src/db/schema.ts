@@ -80,6 +80,8 @@ export const searchEngines = sqliteTable(
     iconUrl: text('icon_url'),
     sortOrder: integer('sort_order').notNull().default(0),
     isDefault: integer('is_default', { mode: 'boolean' }).notNull().default(false),
+    // 搜索建议来源：仅允许 google / baidu；NULL 表示无（业务上按「无」处理，不回填旧数据）。
+    suggestSource: text('suggest_source', { enum: ['google', 'baidu'] }),
     ...audit,
   },
   (t) => ({

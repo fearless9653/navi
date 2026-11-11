@@ -6,6 +6,7 @@ import { createUser } from '@/services/users';
 import { createTag, listTags } from '@/services/tags';
 import { createBookmark, listBookmarks } from '@/services/bookmarks';
 import { exportData, importData } from '@/services/transfer';
+import { listEngines } from '@/services/engines';
 import { getPrefs } from '@/services/prefs';
 
 async function newUser(db: DB, email: string): Promise<number> {
@@ -383,6 +384,56 @@ describe('importData', () => {
       prefs: e.prefs,
     });
     expect(norm(out)).toEqual(norm(dump));
+  });
+
+  it('导入旧备份（无 suggestSource 字段）时按无处理', async () => {
+    const db = createTestDb();
+    const a = await newUser(db, 'a@x.com');
+    await importData(db, a, {
+      mode: 'replace',
+      data: {
+        engines: [
+          {
+            name: 'SearXNG',
+            urlTemplate: 'https://search.example.com/?q={query}',
+            isDefault: true,
+          },
+        ],
+      },
+    });
+    const list = await listEngines(db, a);
+    expect(list).toHaveLength(1);
+    expect(list[0]!.name).toBe('SearXNG');
+    expect(list[0]!.suggestSource).toBeNull();
+  });
+
+  it('导入带 suggestSource 的备份会原样保留', async () => {
+    const db = createTestDb();
+    const a = await newUser(db, 'a@x.com');
+    await importData(db, a, {
+      mode: 'replace',
+      data: {
+        engines: [
+          {
+            name: 'Google',
+            urlTemplate: 'https://www.google.com/search?q={query}',
+            isDefault: true,
+            suggestSource: 'google',
+          },
+          {
+            name: 'Baidu',
+            urlTemplate: 'https://www.baidu.com/s?wd={query}',
+            isDefault: false,
+            suggestSource: 'baidu',
+          },
+        ],
+      },
+    });
+    const list = await listEngines(db, a);
+    expect(list.map((e) => ({ name: e.name, suggestSource: e.suggestSource }))).toEqual([
+      { name: 'Google', suggestSource: 'google' },
+      { name: 'Baidu', suggestSource: 'baidu' },
+    ]);
   });
 });
 
