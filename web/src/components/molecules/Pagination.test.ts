@@ -27,4 +27,16 @@ describe('Pagination', () => {
     expect(source).toContain('color-mix(in srgb, var(--color-surface) 72%, transparent)');
     expect(source).toContain('box-shadow: var(--shadow-sm);');
   });
+
+  it('gives jump and arrow buttons the same hover treatment as page numbers', () => {
+    const wrapper = mount(Pagination, { props: { current: 1, total: 8 } });
+    expect(wrapper.find('.pagination-jump .pagination-btn').exists()).toBe(true);
+
+    const source = readFileSync('web/src/components/molecules/Pagination.vue', 'utf-8');
+    const hoverFill = 'color-mix(in srgb, var(--color-surface-muted) 82%, transparent)';
+    const hoverBorder = 'color-mix(in srgb, var(--color-accent) 28%, transparent)';
+    expect(source).toContain('.pagination .pagination-btn:hover:not(:disabled)');
+    expect(source.split(hoverFill).length - 1).toBeGreaterThanOrEqual(2);
+    expect(source.split(hoverBorder).length - 1).toBeGreaterThanOrEqual(2);
+  });
 });

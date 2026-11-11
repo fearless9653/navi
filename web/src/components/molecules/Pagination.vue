@@ -155,7 +155,9 @@ watch(
         class="pagination-jump-input"
         @keyup.enter="handleJump"
       />
-      <BaseButton variant="ghost" size="sm" @click="handleJump"> {{ t('common.go') }} </BaseButton>
+      <BaseButton variant="ghost" size="sm" class="pagination-btn" @click="handleJump">
+        {{ t('common.go') }}
+      </BaseButton>
     </div>
   </div>
 </template>
@@ -188,6 +190,13 @@ watch(
 .pagination-btn {
   color: var(--color-text-primary);
   transition: all var(--duration-fast) var(--ease-out);
+}
+
+/* 与页码按钮同一套悬停：幽灵按钮默认只铺一层几乎与翻页条同色的底，在 72% 毛玻璃上几乎看不见。 */
+.pagination .pagination-btn:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--color-surface-muted) 82%, transparent);
+  border-color: color-mix(in srgb, var(--color-accent) 28%, transparent);
+  color: var(--color-text-primary);
 }
 
 .pagination-pages {
