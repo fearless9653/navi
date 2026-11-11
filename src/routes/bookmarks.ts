@@ -204,7 +204,7 @@ export function bookmarkRoutes(db: DB, opts: { fetchMeta: FetchMetaFn }) {
     return c.json({ ok: true });
   });
 
-  // 单条抓取并更新（description / faviconUrl；空 name 用 title 填）。
+  // 单条抓取并更新（name / description / faviconUrl；有值则覆盖）。
   app.post('/:id/fetch', async (c) => {
     const id = Number(c.req.param('id'));
     if (!Number.isInteger(id)) return c.json({ error: 'invalid_id' }, 400);
@@ -218,7 +218,7 @@ export function bookmarkRoutes(db: DB, opts: { fetchMeta: FetchMetaFn }) {
       const patch: { description?: string; faviconUrl?: string; name?: string } = {};
       if (md.description !== null) patch.description = md.description;
       if (md.faviconUrl !== null) patch.faviconUrl = md.faviconUrl;
-      if (md.title && !bm.name.trim()) patch.name = md.title;
+      if (md.title) patch.name = md.title;
       await updateBookmark(db, userId, id, patch);
       return c.json({ bookmark: await getBookmark(db, userId, id) });
     } catch (e) {

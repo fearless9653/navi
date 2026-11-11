@@ -75,8 +75,9 @@ describe('抓取路由', () => {
     const id = ((await res.json()) as { bookmark: { id: number } }).bookmark.id;
     res = await write(app, 'POST', `/api/bookmarks/${id}/fetch`, undefined, cookie);
     expect(res.status).toBe(200);
-    const bm = ((await res.json()) as { bookmark: { description: string; faviconUrl: string } })
+    const bm = ((await res.json()) as { bookmark: { name: string; description: string; faviconUrl: string } })
       .bookmark;
+    expect(bm.name).toBe('Fetched Title');
     expect(bm.description).toBe('fetched desc');
     expect(bm.faviconUrl).toBe('https://x.com/f.png');
   });
