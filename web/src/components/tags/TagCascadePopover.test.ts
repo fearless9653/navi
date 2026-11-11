@@ -106,10 +106,29 @@ describe('TagCascadePopover 关闭与滚动容器', () => {
     expect(overlay).not.toBeNull();
     expect((overlay as HTMLElement).style.zIndex).toBe('var(--z-popover)');
 
-    overlay!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    overlay!.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    overlay!.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
     await nextTick();
 
     expect(document.body.querySelector('[data-test="tag-popover-panel"]')).toBeNull();
+    wrapper.unmount();
+  });
+
+  it('在面板内按下、拖到遮罩上松开时不关闭弹层', async () => {
+    const wrapper = mountPopover();
+    await wrapper.find('button').trigger('click');
+    await nextTick();
+
+    const overlay = document.body.querySelector('[data-test="tag-popover-overlay"]');
+    const panel = document.body.querySelector('[data-test="tag-popover-panel"]');
+    expect(overlay).not.toBeNull();
+    expect(panel).not.toBeNull();
+
+    panel!.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    overlay!.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+    await nextTick();
+
+    expect(document.body.querySelector('[data-test="tag-popover-panel"]')).not.toBeNull();
     wrapper.unmount();
   });
 

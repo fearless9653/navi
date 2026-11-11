@@ -9,6 +9,7 @@
  *   </BaseDropdown>
  */
 import { onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue';
+import { useBackdropDismiss } from '@/composables/useBackdropDismiss';
 
 const props = withDefaults(
   defineProps<{ align?: 'left' | 'right'; matchTriggerWidth?: boolean }>(),
@@ -66,6 +67,7 @@ function toggle(): void {
 function close(): void {
   open.value = false;
 }
+const { onBackdropPointerDown, onBackdropPointerUp } = useBackdropDismiss(close);
 
 function onKeydown(e: KeyboardEvent): void {
   if (e.key === 'Escape') close();
@@ -114,7 +116,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown));
     <slot name="trigger" :toggle="toggle" :open="open" :close="close" />
     <!-- 传送到 body：脱离触发处的层叠上下文（毛玻璃容器等），令 z-index 相对页面根生效。 -->
     <Teleport to="body">
-      <div v-if="open" class="dropdown-scrim" @click="close" />
+      <div v-if="open" class="dropdown-scrim" data-test="dropdown-scrim" @pointerdown="onBackdropPointerDown" @pointerup="onBackdropPointerUp" />
       <!-- 浮层弹出/收起动效（pop 过渡见 style.css，enter/leave 对称）；遮罩瞬显不参与过渡。 -->
       <Transition name="pop">
         <div v-if="open" ref="menuRef" class="dropdown-menu ui-surface" :style="menuStyle">

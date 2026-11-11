@@ -3,6 +3,7 @@ import { onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import TagCascadePicker from './TagCascadePicker.vue';
 import { BaseChevron } from '@/components/atoms';
+import { useBackdropDismiss } from '@/composables/useBackdropDismiss';
 
 const props = withDefaults(
   defineProps<{
@@ -63,6 +64,7 @@ function computePosition(): void {
 function close(): void {
   open.value = false;
 }
+const { onBackdropPointerDown, onBackdropPointerUp } = useBackdropDismiss(close);
 
 function toggle(): void {
   if (open.value) {
@@ -127,7 +129,8 @@ onUnmounted(() => {
         data-test="tag-popover-overlay"
         class="fixed inset-0"
         :style="{ zIndex: 'var(--z-popover)' }"
-        @click="close"
+        @pointerdown="onBackdropPointerDown"
+        @pointerup="onBackdropPointerUp"
       />
       <!-- 浮层弹出/收起动效（pop 过渡见 style.css）；遮罩瞬显不参与过渡。 -->
       <Transition name="pop">

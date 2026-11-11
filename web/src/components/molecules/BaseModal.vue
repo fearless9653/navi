@@ -8,6 +8,7 @@
 import { onBeforeUnmount, onMounted, ref, useId } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { BaseButton } from '@/components/atoms';
+import { useBackdropDismiss } from '@/composables/useBackdropDismiss';
 
 defineProps<{
   title: string;
@@ -19,6 +20,7 @@ defineProps<{
 }>();
 const emit = defineEmits<{ close: []; submit: [] }>();
 const { t } = useI18n();
+const { onBackdropPointerDown, onBackdropPointerUp } = useBackdropDismiss(() => emit('close'));
 
 const titleId = useId();
 const dialogRef = ref<HTMLElement>();
@@ -70,7 +72,7 @@ onBeforeUnmount(() => {
 <template>
   <Teleport to="body">
     <Transition appear name="modal">
-      <div class="modal-overlay ui-overlay" @click.self="emit('close')">
+      <div class="modal-overlay ui-overlay" data-test="modal-overlay" @pointerdown="onBackdropPointerDown" @pointerup="onBackdropPointerUp">
         <form
           ref="dialogRef"
           class="modal-panel ui-surface"
