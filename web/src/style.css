@@ -692,17 +692,18 @@ body {
 }
 
 /* ============================================================
- * 首页整页禁止划选 / Ctrl+A（输入框除外）。
- * 由 useHomeNoSelect 在首页路由给 body 加上 .home-no-select。
- * 不要再在首页子组件上单独写 user-select: none。
+ * 首页与后台管理各页禁止划选 / Ctrl+A（输入框与可编辑区域除外）。
+ * 由 usePageNoSelect 在对应路由给 body 加上 .page-no-select。
+ * 类加在 body 上，因此 Teleport 到 body 的弹窗/下拉浮层一并生效。
+ * 不要再在各页子组件上单独写 user-select: none。
  * ============================================================ */
-body.home-no-select {
+body.page-no-select {
   -webkit-user-select: none;
   user-select: none;
 }
-body.home-no-select input,
-body.home-no-select textarea,
-body.home-no-select [contenteditable] {
+body.page-no-select input,
+body.page-no-select textarea,
+body.page-no-select [contenteditable] {
   -webkit-user-select: text;
   user-select: text;
 }
