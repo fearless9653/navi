@@ -212,7 +212,9 @@ export function bookmarkRoutes(db: DB, opts: { fetchMeta: FetchMetaFn }) {
     const bm = await getBookmark(db, userId, id);
     if (!bm) return c.json({ error: 'not_found' }, 404);
     try {
-      const md = await fetchMeta(bm.url);
+      const md = await fetchMeta(bm.url, {
+        acceptLanguage: c.req.header('Accept-Language')?.trim() || undefined,
+      });
       const patch: { description?: string; faviconUrl?: string; name?: string } = {};
       if (md.description !== null) patch.description = md.description;
       if (md.faviconUrl !== null) patch.faviconUrl = md.faviconUrl;

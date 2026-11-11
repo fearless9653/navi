@@ -20,7 +20,8 @@ function getApp(d1: import('@cloudflare/workers-types').D1Database): ReturnType<
     // Workers 上无 DNS lookup（依赖平台出口 + 字面量 SSRF 校验）。
     cachedApp = createApp(db, {
       secureCookie: true,
-      fetchMeta: (url) => fetchMetadata(url, { fetchImpl: fetch, lookup: undefined }),
+      fetchMeta: (url, req) =>
+        fetchMetadata(url, { fetchImpl: fetch, lookup: undefined, acceptLanguage: req?.acceptLanguage }),
       // 登录限流按 CF 边缘注入的真实客户端 IP 计数（客户端不可伪造）。
       clientIp: (c) => c.req.header('cf-connecting-ip') ?? 'local',
     });

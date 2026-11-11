@@ -124,6 +124,30 @@ describe('抓取路由', () => {
     expect(body.error).toBe('fetch_failed');
     expect(body.message).toBeUndefined();
   });
+
+  it('把请求的 Accept-Language 透传给抓取实现，缺省不传', async () => {
+    const langs: Array<string | undefined> = [];
+    const fetchMeta = async (url: string, req?: { acceptLanguage?: string }) => {
+      langs.push(req?.acceptLanguage);
+      return { title: 'T', description: null, faviconUrl: null } as Metadata;
+    };
+    const app = createApp(createTestDb(), { secureCookie: false, fetchMeta });
+    const cookie = await setupAdmin(app);
+    const ok = await app.request('/api/fetch/metadata', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        Origin: ORIGIN,
+        Cookie: cookie,
+        'Accept-Language': 'zh',
+      },
+      body: JSON.stringify({ url: 'https://x.com' }),
+    });
+    expect(ok.status).toBe(200);
+    const missing = await write(app, 'POST', '/api/fetch/metadata', { url: 'https://y.com' }, cookie);
+    expect(missing.status).toBe(200);
+    expect(langs).toEqual(['zh', undefined]);
+  });
 });
 
 describe('请求体与字段上限', () => {

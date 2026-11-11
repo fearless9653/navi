@@ -50,4 +50,20 @@ describe('extractMetadata', () => {
     expect(md.description).toBeNull();
     expect(md.faviconUrl).toBe('https://example.com/favicon.ico');
   });
+  it('标题在无 title 标签时回退 og:title，再回退 twitter:title', () => {
+    const onlyOg = extractMetadata('<meta property="og:title" content="OG Title">', BASE);
+    expect(onlyOg.title).toBe('OG Title');
+    const twitter = extractMetadata('<meta name="twitter:title" content="Tw Title">', BASE);
+    expect(twitter.title).toBe('Tw Title');
+    const preferTitle = extractMetadata(
+      '<title>Real</title><meta property="og:title" content="OG Title">',
+      BASE,
+    );
+    expect(preferTitle.title).toBe('Real');
+  });
+
+  it('description 在 name 与 og 都缺时回退 twitter:description', () => {
+    const md = extractMetadata('<meta name="twitter:description" content="tw desc">', BASE);
+    expect(md.description).toBe('tw desc');
+  });
 });

@@ -14,7 +14,7 @@ import { asLimitError } from '@/lib/limitError';
 
 const props = defineProps<{ bookmark: Bookmark | null }>();
 const emit = defineEmits<{ saved: []; close: [] }>();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const bm = useBookmarksStore();
 const tagsStore = useTagsStore();
 const toast = useToast();
@@ -51,12 +51,14 @@ async function doFetch(): Promise<void> {
   try {
     const r = await api.post<{
       metadata: { title: string | null; description: string | null; faviconUrl: string | null };
-    }>('/fetch/metadata', { url: u });
+    }>('/fetch/metadata', { url: u }, { 'Accept-Language': String(locale.value) });
     if (r.metadata.title && !name.value.trim()) name.value = r.metadata.title;
     if (r.metadata.description) description.value = r.metadata.description;
     if (r.metadata.faviconUrl) faviconUrl.value = r.metadata.faviconUrl;
+    if (!r.metadata.title && !r.metadata.description) toast.warning(t('manage.fetchEmpty'));
   } catch {
-    /* 抓取失败：保持已填内容 */
+    // 抓取失败：保持已填内容，并给出提示。
+    toast.danger(t('manage.fetchFailed'));
   } finally {
     fetching.value = false;
   }

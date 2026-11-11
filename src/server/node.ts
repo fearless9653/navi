@@ -41,11 +41,12 @@ const app = createApp(db, {
   secureCookie: resolveSecureCookie(process.env),
   // 必须用 undici 自带 fetch 配 undici Agent：Node 全局 fetch 用的是内置 undici，
   // 传入 npm undici 的 dispatcher 会因版本不一致报 UND_ERR_INVALID_ARG。
-  fetchMeta: (url) =>
+  fetchMeta: (url, req) =>
     fetchMetadata(url, {
       fetchImpl: undiciFetch as unknown as typeof fetch,
       lookup: nodeLookup,
       makeDispatcher: makePinnedDispatcher,
+      acceptLanguage: req?.acceptLanguage,
     }),
   // 登录限流按 socket 远端地址计数（不信任可伪造的 X-Forwarded-For）。
   clientIp: (c) => getConnInfo(c).remote.address ?? 'local',

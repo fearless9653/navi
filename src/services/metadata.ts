@@ -42,25 +42,34 @@ function parseAttrs(tag: string): Record<string, string> {
   return out;
 }
 
+function metaKey(a: Record<string, string>): string {
+  return (a.property ?? a.name ?? '').toLowerCase();
+}
+
 export function extractMetadata(html: string, baseUrl: string): Metadata {
   const titleM = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-  const title = titleM ? clean(decodeEntities(titleM[1] ?? '')) || null : null;
+  const titleTag = titleM ? clean(decodeEntities(titleM[1] ?? '')) || null : null;
 
   let desc: string | null = null;
   let ogDesc: string | null = null;
+  let twitterDesc: string | null = null;
+  let ogTitle: string | null = null;
+  let twitterTitle: string | null = null;
   const metaRe = /<meta\b[^>]*>/gi;
   let mm: RegExpExecArray | null;
   while ((mm = metaRe.exec(html))) {
     const a = parseAttrs(mm[0]);
-    const content = a.content ?? '';
-    if ((a.name ?? '').toLowerCase() === 'description' && desc === null) {
-      desc = clean(decodeEntities(content)) || null;
-    }
-    if ((a.property ?? '').toLowerCase() === 'og:description' && ogDesc === null) {
-      ogDesc = clean(decodeEntities(content)) || null;
-    }
+    const key = metaKey(a);
+    const content = clean(decodeEntities(a.content ?? '')) || null;
+    if (!content) continue;
+    if (key === 'description' && desc === null) desc = content;
+    if (key === 'og:description' && ogDesc === null) ogDesc = content;
+    if (key === 'twitter:description' && twitterDesc === null) twitterDesc = content;
+    if (key === 'og:title' && ogTitle === null) ogTitle = content;
+    if (key === 'twitter:title' && twitterTitle === null) twitterTitle = content;
   }
-  const description = desc ?? ogDesc;
+  const title = titleTag ?? ogTitle ?? twitterTitle;
+  const description = desc ?? ogDesc ?? twitterDesc;
 
   let iconHref: string | null = null;
   let appleHref: string | null = null;

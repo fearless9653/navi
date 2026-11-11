@@ -34,7 +34,7 @@ export interface AppOptions {
 export function createApp(db: DB, opts: AppOptions = {}) {
   const app = new Hono<AppEnv>();
   const secureCookie = opts.secureCookie ?? false;
-  const fetchMeta: FetchMetaFn = opts.fetchMeta ?? ((url) => fetchMetadata(url));
+  const fetchMeta: FetchMetaFn = opts.fetchMeta ?? ((url, req) => fetchMetadata(url, { acceptLanguage: req?.acceptLanguage }));
   const loginLimiter = createLoginRateLimiter({ max: 10, windowMs: 15 * 60_000 });
 
   // 仅对 /api/* 施加同源校验与会话解析：静态资源（前端构建产物）无需鉴权，
