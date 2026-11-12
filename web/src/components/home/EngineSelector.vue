@@ -116,8 +116,7 @@ watch(currentIconUrl, () => {
     0 1px 1px color-mix(in srgb, var(--color-surface) 70%, transparent);
 }
 
-/* 水印贴左、与触发器同高；遮罩加在未旋转的包裹层上，让「左上实、右下虚」保持屏幕方向。
-   圆标内切于方画布，左上角约 15% 是空的，故实色维持到圆心附近，再向右下在圆周处收虚。 */
+/* 水印贴左、与触发器同高，仅作背景，不再旋转或渐变淡出。 */
 .engine-watermark {
   position: absolute;
   left: 0;
@@ -125,8 +124,6 @@ watch(currentIconUrl, () => {
   z-index: 0;
   height: 100%;
   pointer-events: none;
-  -webkit-mask-image: linear-gradient(135deg, #000 0 50%, transparent 86%);
-  mask-image: linear-gradient(135deg, #000 0 50%, transparent 86%);
 }
 .engine-watermark__img {
   display: block;
@@ -134,7 +131,5 @@ watch(currentIconUrl, () => {
   width: auto;
   max-width: none;
   object-fit: contain;
-  transform: rotate(-30deg);
-  transform-origin: center center;
 }
 </style>
