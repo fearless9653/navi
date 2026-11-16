@@ -171,4 +171,39 @@ describe('useHotkeys', () => {
 
     expect(handler).not.toHaveBeenCalled();
   });
+
+  it('treats ?, fullwidth ？, and Shift+Slash as the help hotkey', () => {
+    const help = vi.fn();
+    const search = vi.fn();
+    const wrapper = mountHotkeys([
+      { key: '/', handler: search },
+      { key: '?', handler: help },
+    ]);
+
+    press('?', { shiftKey: true, code: 'Slash' });
+    press('？', { shiftKey: true, code: 'Slash' });
+    // Mac 中文输入法：key 仍为 '/'，但物理键是 Shift+Slash
+    press('/', { shiftKey: true, code: 'Slash' });
+
+    expect(help).toHaveBeenCalledTimes(3);
+    expect(search).not.toHaveBeenCalled();
+    wrapper.unmount();
+  });
+
+  it('still fires / when Shift produces it on a non-Slash key', () => {
+    const help = vi.fn();
+    const search = vi.fn();
+    const wrapper = mountHotkeys([
+      { key: '/', handler: search },
+      { key: '?', handler: help },
+    ]);
+
+    press('/');
+    // 例如德文布局 Shift+7 打出 '/'，不应当成帮助
+    press('/', { shiftKey: true, code: 'Digit7' });
+
+    expect(search).toHaveBeenCalledTimes(2);
+    expect(help).not.toHaveBeenCalled();
+    wrapper.unmount();
+  });
 });

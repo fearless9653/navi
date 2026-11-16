@@ -6,7 +6,7 @@ import { onMounted, onUnmounted } from 'vue';
  * - ctrlOrMeta 组合键（如 Ctrl/⌘+K）可用 allowInEditable 在输入框内也生效。
  */
 export interface Hotkey {
-  /** 与 KeyboardEvent.key 匹配：字母不区分大小写（兼容 CapsLock），其余精确匹配。 */
+  /** 与 KeyboardEvent.key 匹配：字母不区分大小写（兼容 CapsLock），'?' 另认全角问号与 Shift+Slash，其余精确匹配。 */
   key: string;
   /** 要求按住 Ctrl（Win/Linux）或 ⌘（macOS）。 */
   ctrlOrMeta?: boolean;
@@ -31,12 +31,22 @@ function isEditable(target: EventTarget | null): boolean {
   return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target.isContentEditable;
 }
 
+/** 是否为帮助快捷键所用的问号：半角、全角，或 Mac 中文输入法下仍报 key 为 '/' 的 Shift+Slash。 */
+function isQuestionMarkEvent(e: KeyboardEvent): boolean {
+  if (e.key === '?' || e.key === '？') return true;
+  return e.shiftKey && e.code === 'Slash';
+}
+
 function keyMatches(hk: Hotkey, e: KeyboardEvent): boolean {
   // 字母键：不区分大小写（CapsLock 下 e.key 为大写），但排除 Shift 组合
-  //（Shift+N 留给浏览器/其他用途；'?' 这类 shifted 字符由 e.key 精确体现，不受此限）。
+  //（Shift+N 留给浏览器/其他用途）。
   if (/^[a-z]$/i.test(hk.key)) {
     return e.key.toLowerCase() === hk.key.toLowerCase() && !e.shiftKey;
   }
+  // '?' 不能只靠 e.key：Mac 中文输入法常把 Shift+/ 报成 key '/'。
+  // '/' 在此时让位，避免抢走帮助；其他布局用 Shift 打出的 '/'（如德文 Shift+7）不受影响。
+  if (hk.key === '?') return isQuestionMarkEvent(e);
+  if (hk.key === '/') return e.key === '/' && !isQuestionMarkEvent(e);
   return e.key === hk.key;
 }
 

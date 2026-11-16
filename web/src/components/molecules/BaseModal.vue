@@ -130,6 +130,13 @@ onBeforeUnmount(() => {
   box-shadow: var(--shadow-xl);
 }
 
+/* 无内部可聚焦控件时（如隐藏页脚的快捷键帮助），焦点会落到带 tabindex="-1" 的面板上。
+   焦点转移需要保留（读屏与键盘上下文），面板本身不是控件，UA 默认焦点环没有交互含义，去掉描边。 */
+.modal-panel:focus,
+.modal-panel:focus-visible {
+  outline: none;
+}
+
 .modal-default {
   max-width: 32rem;
 }
