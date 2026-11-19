@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from 'pinia';
 import EngineSelector from './EngineSelector.vue';
 import { useEnginesStore } from '@/stores/engines';
 import type { Engine } from '@/api/types';
+import { DEFAULT_ENGINE_ICON_PATHS } from '@/lib/engineIcons';
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (key: string) => key }),
@@ -13,7 +14,7 @@ const GOOGLE: Engine = {
   id: 1,
   name: 'Google',
   urlTemplate: 'https://www.google.com/search?q={query}',
-  iconUrl: 'https://www.google.com/favicon.ico',
+  iconUrl: null,
   sortOrder: 0,
   isDefault: true,
   suggestSource: null,
@@ -55,7 +56,7 @@ describe('EngineSelector', () => {
     const wrapper = mountSelector([GOOGLE, CUSTOM]);
     const trigger = wrapper.get('[role="combobox"]');
     const img = trigger.get('[data-test="engine-watermark"] img');
-    expect(img.attributes('src')).toBe(GOOGLE.iconUrl);
+    expect(img.attributes('src')).toBe(DEFAULT_ENGINE_ICON_PATHS.google);
     expect(trigger.findAll('img')).toHaveLength(1);
     expect(trigger.text()).toContain('Google');
     wrapper.unmount();
@@ -74,7 +75,7 @@ describe('EngineSelector', () => {
     await flushPromises();
     const optionImgs = Array.from(document.body.querySelectorAll('[role="option"] img'));
     expect(optionImgs).toHaveLength(1);
-    expect(optionImgs[0]?.getAttribute('src')).toBe(GOOGLE.iconUrl);
+    expect(optionImgs[0]?.getAttribute('src')).toBe(DEFAULT_ENGINE_ICON_PATHS.google);
     expect(optionImgs[0]?.className).toContain('h-4');
     wrapper.unmount();
   });
@@ -91,6 +92,22 @@ describe('EngineSelector', () => {
     const wrapper = mountSelector([GOOGLE]);
     expect(wrapper.find('.engine-caret').exists()).toBe(false);
     expect(wrapper.get('[role="combobox"]').text()).toBe('Google');
+    wrapper.unmount();
+  });
+
+  it('预置引擎未配置图标时仍使用本地默认图', () => {
+    const wrapper = mountSelector([{ ...GOOGLE, iconUrl: null }]);
+    expect(wrapper.get('[data-test="engine-watermark"] img').attributes('src')).toBe(
+      DEFAULT_ENGINE_ICON_PATHS.google,
+    );
+    wrapper.unmount();
+  });
+
+  it('用户配置了图标 URL 时优先使用该地址', () => {
+    const wrapper = mountSelector([{ ...GOOGLE, iconUrl: 'https://cdn.example/g.png' }]);
+    expect(wrapper.get('[data-test="engine-watermark"] img').attributes('src')).toBe(
+      'https://cdn.example/g.png',
+    );
     wrapper.unmount();
   });
 });

@@ -7,6 +7,7 @@ import { ApiException } from '@/api/client';
 import type { Engine, SuggestSource } from '@/api/types';
 import { useEnginesStore } from '@/stores/engines';
 import { asLimitError } from '@/lib/limitError';
+import { engineIconFieldValue, resolveEngineIconUrl } from '@/lib/engineIcons';
 
 type SuggestChoice = 'none' | SuggestSource;
 
@@ -17,12 +18,15 @@ const store = useEnginesStore();
 
 const name = ref(props.engine?.name ?? '');
 const urlTemplate = ref(props.engine?.urlTemplate ?? 'https://example.com/search?q={query}');
-const iconUrl = ref(props.engine?.iconUrl ?? '');
+const iconUrl = ref(engineIconFieldValue(props.engine?.urlTemplate ?? '', props.engine?.iconUrl));
 const isDefault = ref(props.engine?.isDefault ?? false);
 const suggestSource = ref<SuggestChoice>(
   props.engine?.suggestSource === 'google' || props.engine?.suggestSource === 'baidu'
     ? props.engine.suggestSource
     : 'none',
+);
+const previewIconUrl = computed(() =>
+  resolveEngineIconUrl(urlTemplate.value, iconUrl.value.trim() || null),
 );
 const busy = ref(false);
 const error = ref('');
@@ -72,8 +76,8 @@ async function save(): Promise<void> {
     <BaseInput v-model="name" :label="t('manage.name')" required />
     <BaseInput v-model="urlTemplate" :label="t('admin.urlTemplate')" required />
     <BaseInput v-model="iconUrl" :label="t('admin.iconUrl')">
-      <template v-if="iconUrl" #append>
-        <Favicon :src="iconUrl" size="h-5 w-5" />
+      <template v-if="previewIconUrl" #append>
+        <Favicon :src="previewIconUrl" size="h-5 w-5" />
       </template>
     </BaseInput>
     <div class="suggest-field">

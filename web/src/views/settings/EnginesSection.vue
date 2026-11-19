@@ -8,6 +8,7 @@ import { useEnginesStore } from '@/stores/engines';
 import { useConfirm } from '@/composables/useConfirm';
 import { useDragReorder } from '@/composables/useDragReorder';
 import type { Engine } from '@/api/types';
+import { resolveEngineIconUrl } from '@/lib/engineIcons';
 
 const { t } = useI18n();
 const store = useEnginesStore();
@@ -61,7 +62,7 @@ onMounted(() => void store.load());
             @pointerdown="onPointerDown(idx, $event)"
             >⠿</span
           >
-          <Favicon :src="e.iconUrl" class="shrink-0" />
+          <Favicon :src="resolveEngineIconUrl(e.urlTemplate, e.iconUrl)" class="shrink-0" />
           <span class="min-w-0">
             <span class="font-medium">{{ e.name }}</span>
             <BaseBadge v-if="e.isDefault" variant="primary" size="xs" class="ml-2">{{

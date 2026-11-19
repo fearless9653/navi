@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useEnginesStore } from '@/stores/engines';
 import { BaseListbox } from '@/components/molecules';
 import { Favicon } from '@/components/atoms';
+import { resolveEngineIconUrl } from '@/lib/engineIcons';
 
 const { t } = useI18n();
 const engines = useEnginesStore();
@@ -23,10 +24,15 @@ const model = computed({
 });
 
 // 触发器水印：从图标+名称的并排布局里拿出来，仅作左侧背景装饰。
+function iconUrlOf(engine: { urlTemplate: string; iconUrl: string | null } | undefined): string | null {
+  if (!engine) return null;
+  return resolveEngineIconUrl(engine.urlTemplate, engine.iconUrl);
+}
+
 const currentIconUrl = computed(() => {
   const id = model.value;
   if (id == null) return null;
-  return byId.value.get(id)?.iconUrl ?? null;
+  return iconUrlOf(byId.value.get(id));
 });
 // 加载失败时整层隐藏，避免放大后露出灰色占位块。
 const watermarkFailed = ref(false);
@@ -65,8 +71,8 @@ watch(currentIconUrl, () => {
 
     <template #option="{ option }">
       <Favicon
-        v-if="byId.get(option.value as number)?.iconUrl"
-        :src="byId.get(option.value as number)!.iconUrl!"
+        v-if="iconUrlOf(byId.get(option.value as number))"
+        :src="iconUrlOf(byId.get(option.value as number))!"
         size="h-4 w-4"
       />
       <span class="truncate">{{ option.label }}</span>
