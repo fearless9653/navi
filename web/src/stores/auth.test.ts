@@ -36,9 +36,10 @@ function seedPreviousUserData() {
   const bm = useBookmarksStore();
   tags.tags = [{ id: 1, name: 'a', parentId: null, path: 'a' }] as unknown as typeof tags.tags;
   prefs.prefs = { ...PREFS };
-  bm.query = 'old';
-  bm.selectedTagIds = [9];
-  bm.page = 3;
+  bm.homeList.query = 'old';
+  bm.homeList.selectedTagIds = [9];
+  bm.homeList.page = 3;
+  bm.manageList.query = 'old-admin';
   return { tags, prefs, bm };
 }
 
@@ -58,9 +59,10 @@ describe('auth store 账号切换重置', () => {
     expect(auth.user?.id).toBe(2);
     expect(tags.tags).toEqual([]);
     expect(prefs.prefs).toBeNull();
-    expect(bm.query).toBe('');
-    expect(bm.selectedTagIds).toEqual([]);
-    expect(bm.page).toBe(1);
+    expect(bm.homeList.query).toBe('');
+    expect(bm.homeList.selectedTagIds).toEqual([]);
+    expect(bm.homeList.page).toBe(1);
+    expect(bm.manageList.query).toBe('');
   });
 
   it('logout 清空数据 store 与当前用户', async () => {

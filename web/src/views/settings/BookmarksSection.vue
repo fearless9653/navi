@@ -21,9 +21,9 @@ const modalOpen = ref(false);
 const editing = ref<Bookmark | null>(null);
 const sel = ref<number[]>([]);
 const bulkTagIds = ref<number[]>([]);
-const q = ref('');
-const sortField = ref<SortKey>('created');
-const sortDir = ref<SortDir>('desc'); // 默认降序
+const q = ref(bm.manageList.query);
+const sortField = ref<SortKey>(bm.manageList.sort);
+const sortDir = ref<SortDir>(bm.manageList.dir);
 const statusFilter = ref<BookmarkStatus>('all');
 // 搜索防抖计时器（下方 watch(q) 用）。
 let qTimer: ReturnType<typeof setTimeout> | undefined;
@@ -40,19 +40,19 @@ const statusOptions = computed<{ value: BookmarkStatus; label: string }[]>(() =>
   { value: 'inactive', label: t('manage.statusInactive') },
 ]);
 
-const totalPages = computed(() => Math.max(1, Math.ceil(bm.total / bm.pageSize)));
+const totalPages = computed(() => Math.max(1, Math.ceil(bm.total / bm.manageList.pageSize)));
 
 const allSelected = computed(
   () => bm.items.length > 0 && bm.items.every((b) => sel.value.includes(b.id)),
 );
 
 async function reload(): Promise<void> {
-  await bm.load({ status: statusFilter.value });
+  await bm.load({ scope: 'manage', status: statusFilter.value });
   sel.value = sel.value.filter((id) => bm.items.some((b) => b.id === id));
 }
 
 function changePage(p: number): void {
-  bm.setPage(p);
+  bm.setPage('manage', p);
   void reload();
 }
 
@@ -98,43 +98,38 @@ async function applyBulkTags(): Promise<void> {
 }
 
 watch(sortField, (value) => {
-  bm.setSort(value);
+  bm.setSort('manage', value);
   void reload();
 });
 
 watch(sortDir, (value) => {
-  bm.setDir(value);
+  bm.setDir('manage', value);
   void reload();
 });
 
 watch(q, (value) => {
-  bm.setQuery(value);
+  bm.setQuery('manage', value);
   // 防抖：管理页搜索每键一次网络请求（store 的 1s 缓存对不同关键字无效），照 HomeView 的 250ms。
   clearTimeout(qTimer);
   qTimer = setTimeout(() => void reload(), 250);
 });
 
 watch(statusFilter, () => {
-  bm.setPage(1);
+  bm.setPage('manage', 1);
   void reload();
 });
 
 watch(responsivePageSize, (newSize, oldSize) => {
   if (oldSize !== undefined && newSize !== oldSize) {
-    bm.pageSize = newSize;
-    bm.setPage(1);
+    bm.setPageSize('manage', newSize);
     void reload();
   }
 });
 
 onMounted(async () => {
-  bm.setTagIds([]);
-  bm.setQuery('');
-  bm.setPage(1);
-  bm.pageSize = responsivePageSize.value;
-  bm.setSort(sortField.value);
-  bm.setDir(sortDir.value);
-  await bm.load({ status: statusFilter.value });
+  // 只改管理页自己的筛选状态，不碰首页的关键词、标签和排序。
+  bm.setPageSize('manage', responsivePageSize.value);
+  await bm.load({ scope: 'manage', status: statusFilter.value });
 });
 
 onUnmounted(() => {
@@ -268,7 +263,7 @@ onUnmounted(() => {
       </table>
     </div>
 
-    <Pagination :current="bm.page" :total="totalPages" @change="changePage" />
+    <Pagination :current="bm.manageList.page" :total="totalPages" @change="changePage" />
   </div>
 
   <BookmarkEditModal

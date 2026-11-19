@@ -71,6 +71,6 @@ describe('BookmarksSection', () => {
 
     await Promise.resolve();
 
-    expect(load).toHaveBeenCalledWith({ status: 'all' });
+    expect(load).toHaveBeenCalledWith({ scope: 'manage', status: 'all' });
   });
 });

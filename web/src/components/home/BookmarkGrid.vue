@@ -20,12 +20,12 @@ const state = computed<'loading' | 'error' | 'empty' | 'list'>(() =>
 
 // 重试：强制重拉当前查询（失败响应未入缓存，force 亦确保绕过任何残留短缓存）。
 function retry(): void {
-  void bm.load({ force: true, detail: false });
+  void bm.load({ scope: 'home', force: true, detail: false });
 }
 
 // 骨架格数量：贴合当前页容量，避免加载态与内容态的网格尺寸跳动。
 // 上限兜底防异常大页，与桌面页容量上限同源（MAX_PAGE_SIZE），避免大屏下骨架少于内容导致网格跳高。
-const skeletonCount = computed(() => Math.min(Math.max(bm.pageSize, 1), MAX_PAGE_SIZE));
+const skeletonCount = computed(() => Math.min(Math.max(bm.homeList.pageSize, 1), MAX_PAGE_SIZE));
 </script>
 
 <template>

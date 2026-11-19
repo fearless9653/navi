@@ -515,9 +515,123 @@ describe('HomeView', () => {
     (nameOpt as HTMLElement).click();
     await flushPromises();
 
-    expect(setSort).toHaveBeenCalledWith('name');
+    expect(setSort).toHaveBeenCalledWith('home', 'name');
     // 仅当前会话切换，不写回偏好
     expect(updatePrefs).not.toHaveBeenCalled();
+
+    wrapper.unmount();
+  });
+
+
+  it('does not apply the admin keyword to the home search box', async () => {
+    const auth = useAuthStore();
+    auth.user = {
+      id: 1,
+      email: 'user@example.com',
+      displayName: 'User',
+      isAdmin: false,
+      isActive: true,
+      mustChangePassword: false,
+      createdDate: '2026-01-01T00:00:00.000Z',
+      lastModifiedDate: '2026-01-01T00:00:00.000Z',
+    };
+    const engines = useEnginesStore();
+    const tags = useTagsStore();
+    const prefs = usePrefsStore();
+    prefs.prefs = {
+      defaultSort: 'visits',
+      recentCount: 10,
+      pageSize: 24,
+      backgroundType: 'none',
+    };
+    const bookmarks = useBookmarksStore();
+    bookmarks.manageList.query = 'admin-kw';
+    bookmarks.homeList.query = '';
+    vi.spyOn(engines, 'load').mockResolvedValue();
+    vi.spyOn(tags, 'loadAll').mockResolvedValue();
+    vi.spyOn(prefs, 'load').mockResolvedValue();
+    vi.spyOn(bookmarks, 'load').mockResolvedValue();
+    vi.spyOn(bookmarks, 'loadRecent').mockResolvedValue();
+    vi.spyOn(bookmarks, 'loadTops').mockResolvedValue();
+    bookmarks.total = 1;
+
+    const wrapper = mount(HomeView, {
+      global: {
+        stubs: {
+          AppLayout: { template: '<div><slot /></div>' },
+          WebSearchHero: { template: '<div />' },
+          HomeRails: { template: '<div />' },
+          TagCascadePopover: { template: '<div />' },
+          TagChips: { template: '<div />' },
+          BookmarkGrid: { template: '<div />' },
+          Pagination: { template: '<div />' },
+          BookmarkEditModal: { template: '<div />' },
+          MusicPlayer: { template: '<div />' },
+        },
+      },
+    });
+    await flushPromises();
+
+    const input = wrapper.find('input[type="search"]');
+    expect((input.element as HTMLInputElement).value).toBe('');
+    expect(bookmarks.homeList.query).toBe('');
+    expect(bookmarks.manageList.query).toBe('admin-kw');
+    expect(bookmarks.load).toHaveBeenCalledWith({ scope: 'home', detail: false });
+
+    wrapper.unmount();
+  });
+
+  it('shows a leftover home keyword in the bound search box', async () => {
+    const auth = useAuthStore();
+    auth.user = {
+      id: 1,
+      email: 'user@example.com',
+      displayName: 'User',
+      isAdmin: false,
+      isActive: true,
+      mustChangePassword: false,
+      createdDate: '2026-01-01T00:00:00.000Z',
+      lastModifiedDate: '2026-01-01T00:00:00.000Z',
+    };
+    const engines = useEnginesStore();
+    const tags = useTagsStore();
+    const prefs = usePrefsStore();
+    prefs.prefs = {
+      defaultSort: 'visits',
+      recentCount: 10,
+      pageSize: 24,
+      backgroundType: 'none',
+    };
+    const bookmarks = useBookmarksStore();
+    bookmarks.homeList.query = 'home-kw';
+    vi.spyOn(engines, 'load').mockResolvedValue();
+    vi.spyOn(tags, 'loadAll').mockResolvedValue();
+    vi.spyOn(prefs, 'load').mockResolvedValue();
+    vi.spyOn(bookmarks, 'load').mockResolvedValue();
+    vi.spyOn(bookmarks, 'loadRecent').mockResolvedValue();
+    vi.spyOn(bookmarks, 'loadTops').mockResolvedValue();
+    bookmarks.total = 1;
+
+    const wrapper = mount(HomeView, {
+      global: {
+        stubs: {
+          AppLayout: { template: '<div><slot /></div>' },
+          WebSearchHero: { template: '<div />' },
+          HomeRails: { template: '<div />' },
+          TagCascadePopover: { template: '<div />' },
+          TagChips: { template: '<div />' },
+          BookmarkGrid: { template: '<div />' },
+          Pagination: { template: '<div />' },
+          BookmarkEditModal: { template: '<div />' },
+          MusicPlayer: { template: '<div />' },
+        },
+      },
+    });
+    await flushPromises();
+
+    const input = wrapper.find('input[type="search"]');
+    expect((input.element as HTMLInputElement).value).toBe('home-kw');
+    expect(bookmarks.homeList.query).toBe('home-kw');
 
     wrapper.unmount();
   });

@@ -64,8 +64,8 @@ describe('bookmarks store list loading', () => {
     vi.mocked(api.get).mockReturnValue(pending.promise);
     const store = useBookmarksStore();
 
-    const first = store.load();
-    const second = store.load();
+    const first = store.load({ scope: 'home' });
+    const second = store.load({ scope: 'home' });
 
     expect(api.get).toHaveBeenCalledTimes(1);
 
@@ -85,8 +85,8 @@ describe('bookmarks store list loading', () => {
     });
     const store = useBookmarksStore();
 
-    await store.load();
-    await store.load();
+    await store.load({ scope: 'home' });
+    await store.load({ scope: 'home' });
 
     expect(api.get).toHaveBeenCalledTimes(1);
     expect(store.items.map((item) => item.id)).toEqual([1]);
@@ -98,11 +98,11 @@ describe('bookmarks store list loading', () => {
     vi.mocked(api.get).mockResolvedValue({ items: [bookmark(1)], total: 1, page: 1, pageSize: 24 });
     const store = useBookmarksStore();
 
-    await store.load();
+    await store.load({ scope: 'home' });
 
     // 模拟 HomeView 外部置真后再次同键 load（视口不变 → 同 key，命中缓存提前返回）。
     store.loading = true;
-    await store.load();
+    await store.load({ scope: 'home' });
 
     expect(api.get).toHaveBeenCalledTimes(1);
     expect(store.loading).toBe(false);
@@ -115,8 +115,8 @@ describe('bookmarks store list loading', () => {
       .mockResolvedValueOnce({ items: [bookmark(2)], total: 1, page: 1, pageSize: 24 });
     const store = useBookmarksStore();
 
-    await store.load();
-    await store.load({ force: true });
+    await store.load({ scope: 'home' });
+    await store.load({ scope: 'home', force: true });
 
     expect(api.get).toHaveBeenCalledTimes(2);
     expect(store.items.map((item) => item.id)).toEqual([2]);
@@ -128,9 +128,9 @@ describe('bookmarks store list loading', () => {
     vi.mocked(api.get).mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
     const store = useBookmarksStore();
 
-    const firstLoad = store.load();
-    store.setQuery('newer');
-    const secondLoad = store.load();
+    const firstLoad = store.load({ scope: 'home' });
+    store.setQuery('home', 'newer');
+    const secondLoad = store.load({ scope: 'home' });
 
     second.resolve({ items: [bookmark(2, 'newer')], total: 1, page: 1, pageSize: 24 });
     await secondLoad;
@@ -139,7 +139,7 @@ describe('bookmarks store list loading', () => {
 
     expect(api.get).toHaveBeenCalledTimes(2);
     expect(store.items.map((item) => item.name)).toEqual(['newer']);
-    expect(store.query).toBe('newer');
+    expect(store.homeList.query).toBe('newer');
     expect(store.loading).toBe(false);
   });
 
@@ -148,7 +148,7 @@ describe('bookmarks store list loading', () => {
     vi.mocked(api.get).mockRejectedValue({ status: 400 });
     const store = useBookmarksStore();
 
-    await store.load();
+    await store.load({ scope: 'home' });
 
     expect(api.get).toHaveBeenCalledTimes(1);
     expect(store.error).toBe(true);
@@ -163,7 +163,7 @@ describe('bookmarks store list loading', () => {
       .mockResolvedValueOnce({ items: [bookmark(1)], total: 1, page: 1, pageSize: 24 });
     const store = useBookmarksStore();
 
-    const loading = store.load();
+    const loading = store.load({ scope: 'home' });
     // 推进退避计时器（首次重试 300ms），让重试真正发起。
     await vi.advanceTimersByTimeAsync(300);
     await loading;
@@ -179,7 +179,7 @@ describe('bookmarks store list loading', () => {
     vi.mocked(api.get).mockRejectedValue({ status: 503 });
     const store = useBookmarksStore();
 
-    const loading = store.load();
+    const loading = store.load({ scope: 'home' });
     await vi.advanceTimersByTimeAsync(300 + 600);
     await loading;
 
@@ -195,7 +195,7 @@ describe('bookmarks store list loading', () => {
       .mockResolvedValueOnce({ items: [bookmark(1)], total: 1, page: 1, pageSize: 24 });
     const store = useBookmarksStore();
 
-    const loading = store.load();
+    const loading = store.load({ scope: 'home' });
     await vi.advanceTimersByTimeAsync(300);
     await loading;
 
@@ -209,11 +209,11 @@ describe('bookmarks store list loading', () => {
       .mockResolvedValueOnce({ items: [bookmark(1)], total: 1, page: 1, pageSize: 24 });
     const store = useBookmarksStore();
 
-    await store.load();
+    await store.load({ scope: 'home' });
     expect(store.error).toBe(true);
 
     // 失败响应未入缓存，force 重试重新发起请求并成功恢复。
-    await store.load({ force: true });
+    await store.load({ scope: 'home', force: true });
 
     expect(store.error).toBe(false);
     expect(store.loading).toBe(false);
@@ -226,8 +226,8 @@ describe('bookmarks store list loading', () => {
       .mockResolvedValueOnce({ items: [bookmark(1)], total: 1, page: 1, pageSize: 24 });
     const store = useBookmarksStore();
 
-    await store.load();
-    await store.load();
+    await store.load({ scope: 'home' });
+    await store.load({ scope: 'home' });
 
     expect(api.get).toHaveBeenCalledTimes(2);
     expect(store.items.map((item) => item.id)).toEqual([1]);
@@ -297,4 +297,22 @@ describe('bookmarks store list loading', () => {
 
     expect(api.get).toHaveBeenCalledTimes(2);
   });
+
+  it('keeps home and manage list filters isolated', async () => {
+    vi.mocked(api.get).mockResolvedValue({ items: [], total: 0, page: 1, pageSize: 24 });
+    const store = useBookmarksStore();
+    store.setQuery('manage', 'admin-kw');
+    store.setQuery('home', 'home-kw');
+
+    await store.load({ scope: 'home' });
+    const homeUrl = String(vi.mocked(api.get).mock.calls.at(-1)?.[0]);
+    expect(homeUrl).toContain('q=home-kw');
+    expect(homeUrl).not.toContain('admin-kw');
+
+    await store.load({ scope: 'manage' });
+    const manageUrl = String(vi.mocked(api.get).mock.calls.at(-1)?.[0]);
+    expect(manageUrl).toContain('q=admin-kw');
+    expect(manageUrl).not.toContain('home-kw');
+  });
+
 });

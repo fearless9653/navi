@@ -57,9 +57,8 @@ function loadSelectedRail(): Promise<unknown> {
 
 watch(responsivePageSize, (newSize, oldSize) => {
   if (oldSize !== undefined && newSize !== oldSize && auth.isAuthed) {
-    bm.pageSize = newSize;
-    bm.setPage(1);
-    void bm.load({ detail: false });
+    bm.setPageSize('home', newSize);
+    void bm.load({ scope: 'home', detail: false });
   }
 });
 
@@ -87,10 +86,10 @@ const sloganVisible = computed(() => (prefs.prefs?.slogan ?? '').trim() !== '');
 
 // 选中标签 → 写入 store 并重新查询（交集 + 父含子在后端完成）。
 const selectedTagIds = computed<number[]>({
-  get: () => bm.selectedTagIds,
+  get: () => bm.homeList.selectedTagIds,
   set: (ids) => {
-    bm.setTagIds(ids);
-    void bm.load({ detail: false });
+    bm.setTagIds('home', ids);
+    void bm.load({ scope: 'home', detail: false });
   },
 });
 const selectedTags = computed(() => {
@@ -105,27 +104,28 @@ function clearTags(): void {
   selectedTagIds.value = [];
 }
 
-const totalPages = computed(() => Math.max(1, Math.ceil(bm.total / bm.pageSize)));
+const totalPages = computed(() => Math.max(1, Math.ceil(bm.total / bm.homeList.pageSize)));
 
+const listQuery = ref(bm.homeList.query);
 let qTimer: ReturnType<typeof setTimeout> | undefined;
-function onQuery(e: Event): void {
-  const v = (e.target as HTMLInputElement).value;
+function onQuery(): void {
+  const v = listQuery.value;
   clearTimeout(qTimer);
   qTimer = setTimeout(() => {
-    bm.setQuery(v);
-    void bm.load({ detail: false });
+    bm.setQuery('home', v);
+    void bm.load({ scope: 'home', detail: false });
   }, 250);
 }
 
 /** 切换排序：写入 store（含 page 重置）并重载。仅当前会话生效，不写回偏好。 */
 function onSortChange(value: SortKey): void {
-  bm.setSort(value);
-  void bm.load({ detail: false });
+  bm.setSort('home', value);
+  void bm.load({ scope: 'home', detail: false });
 }
 
 function changePage(p: number): void {
-  bm.setPage(p);
-  void bm.load({ detail: false });
+  bm.setPage('home', p);
+  void bm.load({ scope: 'home', detail: false });
 }
 
 function openAddBookmark(): void {
@@ -147,7 +147,7 @@ async function onSaved(): Promise<void> {
   closeModal();
   // 增改删会影响榜单/最近访问；写操作已失效侧栏缓存，这里只需重拉当前可见面板，
   // 其余面板等切换到时再按需拉取。
-  await Promise.all([bm.load({ force: true, detail: false }), loadSelectedRail()]);
+  await Promise.all([bm.load({ scope: 'home', force: true, detail: false }), loadSelectedRail()]);
 }
 
 function onVisibilityChange(): void {
@@ -181,11 +181,11 @@ function focusTagSearch(): void {
 /** 筛选搜索框内 Esc：清空（含防抖中的查询）并失焦。 */
 function onTagSearchEscape(e: KeyboardEvent): void {
   const el = e.target as HTMLInputElement;
-  el.value = '';
+  listQuery.value = '';
   clearTimeout(qTimer);
-  if (bm.query) {
-    bm.setQuery('');
-    void bm.load({ detail: false });
+  if (bm.homeList.query) {
+    bm.setQuery('home', '');
+    void bm.load({ scope: 'home', detail: false });
   }
   el.blur();
 }
@@ -253,9 +253,9 @@ onMounted(async () => {
     // 此处无条件再调会在其请求返回后又发一次（in-flight 去重挡不住已完成的），故加守卫。
     await Promise.all([tagsStore.loadAll(), prefs.prefs ? Promise.resolve() : prefs.load()]);
     if (prefs.prefs) {
-      bm.pageSize = responsivePageSize.value;
+      bm.setPageSize('home', responsivePageSize.value);
       if (SORTS.includes(prefs.prefs.defaultSort as SortKey)) {
-        bm.sort = prefs.prefs.defaultSort as SortKey;
+        bm.homeList.sort = prefs.prefs.defaultSort as SortKey;
       }
     }
   } catch {
@@ -264,7 +264,7 @@ onMounted(async () => {
   }
   // 懒加载：初次只拉默认面板（最近访问），三榜单等用户切过去时再拉。
   // bm.load 自身吞错并管理 loading/error；loadSelectedRail 独立接住，侧栏失败不牵连主列表、不产生未处理 rejection。
-  await Promise.all([bm.load({ detail: false }), loadSelectedRail().catch(() => {})]);
+  await Promise.all([bm.load({ scope: 'home', detail: false }), loadSelectedRail().catch(() => {})]);
   document.addEventListener('visibilitychange', onVisibilityChange);
 });
 
@@ -333,6 +333,7 @@ onUnmounted(() => {
             <div class="flex w-full items-center gap-2 sm:w-auto sm:gap-3">
               <input
                 ref="tagSearchInput"
+                v-model="listQuery"
                 type="search"
                 :placeholder="t('home.searchInTags')"
                 :aria-label="t('home.searchInTags')"
@@ -344,7 +345,7 @@ onUnmounted(() => {
               <!-- 排序：值取自默认排序偏好，切换仅当前会话生效，不写回偏好 -->
               <BaseSelect
                 id="home-sort-select"
-                :model-value="bm.sort"
+                :model-value="bm.homeList.sort"
                 :options="sortOptions"
                 :aria-label="t('common.sortBy')"
                 size="sm"
@@ -368,7 +369,7 @@ onUnmounted(() => {
             <BookmarkGrid @edit="onEditBookmark" />
           </div>
 
-          <Pagination :current="bm.page" :total="totalPages" @change="changePage" />
+          <Pagination :current="bm.homeList.page" :total="totalPages" @change="changePage" />
         </section>
       </div>
     </div>

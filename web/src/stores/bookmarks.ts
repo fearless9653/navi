@@ -28,7 +28,31 @@ interface ListResponseLite {
   pageSize: number;
 }
 
+/** 首页与后台管理各自持有一份列表筛选状态，互不影响。 */
+export type BookmarkListScope = 'home' | 'manage';
+
+interface ListFilters {
+  query: string;
+  selectedTagIds: number[];
+  sort: SortKey;
+  dir: SortDir;
+  page: number;
+  pageSize: number;
+}
+
+function createListFilters(): ListFilters {
+  return {
+    query: '',
+    selectedTagIds: [],
+    sort: 'created',
+    dir: 'desc',
+    page: 1,
+    pageSize: 24,
+  };
+}
+
 interface LoadOptions {
+  scope: BookmarkListScope;
   status?: BookmarkStatus;
   force?: boolean;
   /** 首页用精简接口：只取 tagIds，前端用全量标签映射组装 tags。 */
@@ -69,12 +93,8 @@ function sleep(ms: number): Promise<void> {
 export const useBookmarksStore = defineStore('bookmarks', () => {
   const items = ref<Bookmark[]>([]);
   const total = ref(0);
-  const page = ref(1);
-  const pageSize = ref(24);
-  const selectedTagIds = ref<number[]>([]);
-  const query = ref('');
-  const sort = ref<SortKey>('created');
-  const dir = ref<SortDir>('desc');
+  const homeList = ref<ListFilters>(createListFilters());
+  const manageList = ref<ListFilters>(createListFilters());
   const recent = ref<RecentBookmark[]>([]);
   const tops = ref<TopLists>({ visits: [], weight: [], created: [] });
   const loading = ref(false);
@@ -86,17 +106,22 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
   const inFlightLists = new Map<string, Promise<ListResponse>>();
   let latestListRequestId = 0;
 
+  function listOf(scope: BookmarkListScope): ListFilters {
+    return scope === 'home' ? homeList.value : manageList.value;
+  }
+
   function buildListParams(opts: LoadOptions): URLSearchParams {
+    const f = listOf(opts.scope);
     const p = new URLSearchParams();
-    if (selectedTagIds.value.length) {
-      p.set('tags', [...selectedTagIds.value].sort((a, b) => a - b).join(','));
+    if (f.selectedTagIds.length) {
+      p.set('tags', [...f.selectedTagIds].sort((a, b) => a - b).join(','));
     }
-    if (query.value.trim()) p.set('q', query.value.trim());
+    if (f.query.trim()) p.set('q', f.query.trim());
     if (opts.status) p.set('status', opts.status);
-    p.set('sort', sort.value);
-    p.set('dir', dir.value);
-    p.set('page', String(page.value));
-    p.set('pageSize', String(pageSize.value));
+    p.set('sort', f.sort);
+    p.set('dir', f.dir);
+    p.set('page', String(f.page));
+    p.set('pageSize', String(f.pageSize));
     if (opts.detail === false) p.set('detail', '0');
     return p;
   }
@@ -114,11 +139,12 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
     return { items, total: res.total, page: res.page, pageSize: res.pageSize };
   }
 
-  function applyListResponse(res: ListResponse): void {
+  function applyListResponse(scope: BookmarkListScope, res: ListResponse): void {
     items.value = res.items;
     total.value = res.total;
-    page.value = res.page;
-    pageSize.value = res.pageSize;
+    const f = listOf(scope);
+    f.page = res.page;
+    f.pageSize = res.pageSize;
   }
 
   function clearListCache(): void {
@@ -179,7 +205,7 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
     }
   }
 
-  async function load(opts: LoadOptions = {}): Promise<void> {
+  async function load(opts: LoadOptions): Promise<void> {
     const requestId = ++latestListRequestId;
     const p = buildListParams(opts);
     const key = p.toString();
@@ -191,7 +217,7 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
       // 命中缓存时骨架屏无人关闭、永久卡死。仅最新请求复位并应用，避免抹掉/覆盖
       // 更晚 in-flight 请求的状态（与下方 finally 的 requestId 守卫一致）。
       if (requestId === latestListRequestId) {
-        applyListResponse(cached.response);
+        applyListResponse(opts.scope, cached.response);
         loading.value = false;
         error.value = false;
       }
@@ -223,7 +249,7 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
       listCache.set(key, { savedAt: Date.now(), response: res });
 
       if (requestId === latestListRequestId) {
-        applyListResponse(res);
+        applyListResponse(opts.scope, res);
       }
     } catch {
       // 查询失败：仅最新请求置错误态，驱动列表显示「加载失败 + 重试」。
@@ -274,24 +300,34 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
     invalidateAfterWrite();
   }
 
-  function setTagIds(ids: number[]): void {
-    selectedTagIds.value = ids;
-    page.value = 1;
+  function setTagIds(scope: BookmarkListScope, ids: number[]): void {
+    const f = listOf(scope);
+    f.selectedTagIds = ids;
+    f.page = 1;
   }
-  function setQuery(q: string): void {
-    query.value = q;
-    page.value = 1;
+  function setQuery(scope: BookmarkListScope, q: string): void {
+    const f = listOf(scope);
+    f.query = q;
+    f.page = 1;
   }
-  function setSort(s: SortKey): void {
-    sort.value = s;
-    page.value = 1;
+  function setSort(scope: BookmarkListScope, s: SortKey): void {
+    const f = listOf(scope);
+    f.sort = s;
+    f.page = 1;
   }
-  function setDir(next: SortDir): void {
-    dir.value = next;
-    page.value = 1;
+  function setDir(scope: BookmarkListScope, next: SortDir): void {
+    const f = listOf(scope);
+    f.dir = next;
+    f.page = 1;
   }
-  function setPage(p: number): void {
-    page.value = p;
+  function setPage(scope: BookmarkListScope, p: number): void {
+    listOf(scope).page = p;
+  }
+  function setPageSize(scope: BookmarkListScope, size: number): void {
+    const f = listOf(scope);
+    if (f.pageSize === size) return;
+    f.pageSize = size;
+    f.page = 1;
   }
 
   // —— 管理（Task 4 用） ——
@@ -324,12 +360,8 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
   function reset(): void {
     items.value = [];
     total.value = 0;
-    page.value = 1;
-    pageSize.value = 24;
-    selectedTagIds.value = [];
-    query.value = '';
-    sort.value = 'created';
-    dir.value = 'desc';
+    homeList.value = createListFilters();
+    manageList.value = createListFilters();
     recent.value = [];
     tops.value = { visits: [], weight: [], created: [] };
     loading.value = false;
@@ -345,12 +377,8 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
   return {
     items,
     total,
-    page,
-    pageSize,
-    selectedTagIds,
-    query,
-    sort,
-    dir,
+    homeList,
+    manageList,
     recent,
     tops,
     loading,
@@ -366,6 +394,7 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
     setSort,
     setDir,
     setPage,
+    setPageSize,
     create,
     update,
     remove,
