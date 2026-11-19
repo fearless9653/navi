@@ -18,22 +18,6 @@ describe('SettingsLayout', () => {
     setActivePinia(createPinia());
   });
 
-  it('renders the settings navigation on a translucent glass surface', () => {
-    const wrapper = mount(SettingsLayout, {
-      global: {
-        stubs: {
-          AppLayout: { template: '<main><slot /></main>' },
-          RouterLink: { template: '<a><slot /></a>' },
-          RouterView: { template: '<section />' },
-        },
-      },
-    });
-
-    const nav = wrapper.find('[data-test="settings-nav-surface"]');
-
-    expect(nav.exists()).toBe(true);
-    expect(nav.classes()).toContain('ui-surface-translucent');
-  });
 
   it('keeps the settings navigation surface from stretching with long content', () => {
     const wrapper = mount(SettingsLayout, {

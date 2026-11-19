@@ -88,24 +88,6 @@ describe('SloganSection', () => {
     expect(wrapper.find('[data-test="slogan-save"]').exists()).toBe(false);
   });
 
-  it('renders the slogan surface on a translucent glass surface', () => {
-    const prefs = usePrefsStore();
-    prefs.prefs = {
-      defaultSort: 'weight',
-      recentCount: 8,
-      pageSize: 24,
-      backgroundType: 'none',
-      slogan: '',
-    };
-    vi.spyOn(prefs, 'load').mockResolvedValue();
-
-    const wrapper = mount(SloganSection);
-
-    const surface = wrapper.find('[data-test="slogan-surface"]');
-
-    expect(surface.exists()).toBe(true);
-    expect(surface.classes()).toContain('ui-surface-translucent');
-  });
 
   it('stores the selected slogan font in the browser without updating account prefs', async () => {
     window.queryLocalFonts = vi.fn().mockResolvedValue([

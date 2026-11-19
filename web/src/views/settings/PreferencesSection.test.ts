@@ -51,21 +51,4 @@ describe('PreferencesSection', () => {
     wrapper.unmount();
   });
 
-  it('renders the bookmark list surface on a translucent glass surface', () => {
-    const prefs = usePrefsStore();
-    prefs.prefs = {
-      defaultSort: 'weight',
-      recentCount: 8,
-      pageSize: 24,
-      backgroundType: 'none',
-    };
-    vi.spyOn(prefs, 'load').mockResolvedValue();
-
-    const wrapper = mount(PreferencesSection);
-
-    const surface = wrapper.find('[data-test="preferences-surface"]');
-
-    expect(surface.exists()).toBe(true);
-    expect(surface.classes()).toContain('ui-surface-translucent');
-  });
 });

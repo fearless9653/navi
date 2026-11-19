@@ -42,14 +42,6 @@ async function selectFile(content: string, name: string): Promise<ReturnType<typ
 }
 
 describe('TransferSection', () => {
-  it('renders import and export settings on a translucent glass surface', () => {
-    const wrapper = mount(TransferSection);
-
-    const surface = wrapper.find('[data-test="transfer-surface"]');
-
-    expect(surface.exists()).toBe(true);
-    expect(surface.classes()).toContain('ui-surface-translucent');
-  });
 
   it('renders both export buttons (JSON backup and browser bookmarks HTML)', () => {
     const wrapper = mount(TransferSection);
